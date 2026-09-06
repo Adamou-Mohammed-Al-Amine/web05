@@ -1,0 +1,297 @@
+html, body {
+  height: 100%;
+}
+
+body {
+  padding: 0;
+}
+
+.settings-shell {
+  height: 100vh;
+  border-radius: 0; /* fills the whole (borderless) settings window */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--glass-border);
+  flex-shrink: 0;
+}
+
+.settings-logo {
+  width: 32px;
+  height: 32px;
+  /* Logo is a white silhouette on transparent PNG — a faint backing circle
+     keeps it legible if the window is ever shown over a very light system
+     theme, without altering the artwork itself. */
+  filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.25));
+}
+
+.settings-header h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.settings-subtitle {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+
+.welcome-banner {
+  margin: 14px 20px 0;
+  padding: 18px;
+  border-radius: 14px;
+  background: rgba(120, 170, 255, 0.1);
+  border: 1px solid rgba(120, 170, 255, 0.25);
+  text-align: center;
+  flex-shrink: 0;
+}
+.welcome-logo {
+  width: 40px;
+  height: 40px;
+  margin-bottom: 6px;
+}
+.welcome-banner h2 {
+  margin: 4px 0;
+  font-size: 15px;
+  color: var(--text-primary);
+}
+.welcome-banner p {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 10px 16px 0;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.settings-tab {
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  transition: color var(--dur-fast) var(--ease-standard);
+}
+.settings-tab[data-active="true"] {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+.settings-tab:hover {
+  color: var(--text-primary);
+}
+
+.settings-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px 8px;
+}
+
+.settings-section {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+}
+.settings-section[data-active="true"] {
+  display: flex;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+  color: var(--text-primary);
+  gap: 16px;
+}
+.row > span:first-child {
+  flex-shrink: 0;
+}
+
+.row-column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.row-label {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+input[type="text"],
+input[type="number"],
+select {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  min-width: 140px;
+}
+input[type="number"] {
+  min-width: 80px;
+}
+
+input[type="checkbox"] {
+  width: 36px;
+  height: 20px;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard);
+  flex-shrink: 0;
+}
+input[type="checkbox"]::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: white;
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+input[type="checkbox"]:checked {
+  background: var(--accent);
+}
+input[type="checkbox"]:checked::before {
+  transform: translateX(16px);
+}
+
+input[type="range"] {
+  width: 140px;
+}
+
+input[type="color"] {
+  width: 44px;
+  height: 26px;
+  border: 1px solid var(--glass-border);
+  border-radius: 6px;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+}
+
+.btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border-strong);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard);
+}
+.btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+.btn-primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: #0c0c10;
+  font-weight: 600;
+}
+
+.pause-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 4px;
+}
+.pause-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.search-row {
+  display: flex;
+  gap: 8px;
+}
+.search-row input[type="text"] {
+  flex: 1;
+}
+
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 160px;
+  overflow-y: auto;
+}
+.city-result {
+  text-align: left;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.city-result:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--glass-border-strong);
+}
+
+.hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+}
+
+.advanced {
+  margin-top: 8px;
+  padding-top: 8px;
+}
+.advanced summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 6px 4px;
+}
+
+.settings-footer {
+  padding: 8px 20px;
+  border-top: 1px solid var(--glass-border);
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+.save-indicator {
+  font-size: 11px;
+  color: var(--accent);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-standard);
+}
+.save-indicator.visible {
+  opacity: 1;
+}

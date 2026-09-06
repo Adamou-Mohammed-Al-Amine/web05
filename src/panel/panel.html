@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prayer Bar - Today</title>
+  <link rel="stylesheet" href="../styles/glass.css" />
+  <link rel="stylesheet" href="./panel.css" />
+</head>
+<body>
+  <div class="panel glass-surface" data-tauri-drag-region>
+    <div class="panel-tabs">
+      <button class="panel-tab" id="tabToday" data-active="true">Today</button>
+      <button class="panel-tab" id="tabTomorrow">Tomorrow</button>
+    </div>
+    <div class="panel-list" id="panelList"></div>
+  </div>
+
+  <script type="module" src="./panel.ts"></script>
+</body>
+</html>

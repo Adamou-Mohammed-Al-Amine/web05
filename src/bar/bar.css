@@ -1,0 +1,188 @@
+body {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  height: 100vh;
+  padding-top: 8px;
+}
+
+.bar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-width: 220px;
+  max-width: 420px;
+  padding: 9px 18px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    padding var(--dur-medium) var(--ease-standard),
+    min-width var(--dur-medium) var(--ease-standard),
+    border-color var(--dur-medium) var(--ease-standard),
+    box-shadow var(--dur-medium) var(--ease-standard),
+    transform var(--dur-fast) var(--ease-standard);
+}
+
+.bar:hover {
+  border-color: var(--glass-border-strong);
+}
+
+.bar:active {
+  transform: scale(0.985);
+}
+
+/* Subtle progress line toward next prayer — a hairline, not a UI element */
+.bar-progress {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 5px;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.bar-progress::after {
+  content: "";
+  display: block;
+  height: 100%;
+  width: var(--progress, 0%);
+  background: var(--accent);
+  opacity: 0.55;
+  transition: width 1s linear, background-color var(--dur-medium) var(--ease-standard);
+}
+
+.bar-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.bar-icon {
+  font-size: 14px;
+  line-height: 1;
+  filter: grayscale(0.15);
+  transition: transform var(--dur-medium) var(--ease-standard);
+}
+
+.bar-text {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  font-size: 13px;
+  letter-spacing: 0.1px;
+}
+
+.bar-prayer {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.bar-sep {
+  color: var(--text-tertiary);
+}
+
+.bar-countdown {
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.bar-controls {
+  display: flex;
+  gap: 6px;
+  margin-left: 4px;
+}
+
+.bar-btn {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--glass-border-strong);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-standard);
+}
+.bar-btn:hover { background: rgba(255, 255, 255, 0.14); }
+
+/* ---------- State: close (< 60s to prayer) ---------- */
+.bar[data-state="close"] .bar-countdown {
+  color: var(--text-primary);
+}
+.bar[data-state="close"] .bar-icon {
+  animation: pulse-soft 1.6s ease-in-out infinite;
+}
+
+/* ---------- State: adhan ---------- */
+.bar[data-state="adhan"] {
+  padding: 12px 22px;
+  min-width: 260px;
+  border-color: rgba(255, 140, 130, 0.35);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 120, 110, 0.12);
+  animation: bounce-in var(--dur-slow) var(--ease-standard);
+}
+.bar[data-state="adhan"] .bar-icon { transform: scale(1.15); }
+.bar[data-state="adhan"] .bar-prayer,
+.bar[data-state="adhan"] .bar-countdown { color: var(--accent-warning); }
+.bar[data-state="adhan"] .bar-progress::after { background: var(--accent-warning); }
+
+/* ---------- State: iqama ---------- */
+.bar[data-state="iqama"] .bar-icon { filter: none; }
+.bar[data-state="iqama"] .bar-progress::after { background: var(--accent-warning); opacity: 0.4; }
+
+/* ---------- State: iqama warning (last 5 min) ---------- */
+.bar[data-state="iqamaWarning"] {
+  border-color: rgba(255, 120, 110, 0.3);
+}
+.bar[data-state="iqamaWarning"] .bar-prayer,
+.bar[data-state="iqamaWarning"] .bar-countdown {
+  color: var(--accent-warning);
+}
+.bar[data-state="iqamaWarning"] .bar-icon {
+  animation: pulse-warning 2.2s ease-in-out infinite;
+}
+.bar[data-state="iqamaWarning"] .bar-progress::after { background: var(--accent-warning); }
+
+/* ---------- State: paused ---------- */
+.bar[data-state="paused"] .bar-icon,
+.bar[data-state="paused"] .bar-prayer,
+.bar[data-state="paused"] .bar-countdown {
+  color: var(--accent-paused);
+}
+.bar[data-state="paused"] .bar-progress::after { background: var(--accent-paused); opacity: 0.3; }
+
+@keyframes bounce-in {
+  0%   { transform: scale(0.94); }
+  55%  { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+@keyframes pulse-warning {
+  0%, 100% { transform: scale(1);    opacity: 1;   }
+  50%      { transform: scale(1.08); opacity: 0.75;}
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar, .bar-icon, .bar-progress::after { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Compact mode (Appearance setting) ---------- */
+.bar[data-compact="true"] {
+  padding: 6px 14px;
+  min-width: 170px;
+}
+.bar[data-compact="true"] .bar-text { font-size: 11px; }
+.bar[data-compact="true"] .bar-icon { font-size: 12px; }

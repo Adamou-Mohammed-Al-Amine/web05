@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prayer Bar Settings</title>
+  <link rel="stylesheet" href="../styles/glass.css" />
+  <link rel="stylesheet" href="./settings.css" />
+</head>
+<body>
+  <div class="settings-shell glass-surface">
+    <header class="settings-header" data-tauri-drag-region>
+      <img src="../assets/logo.png" alt="" class="settings-logo" />
+      <div>
+        <h1>Prayer Bar</h1>
+        <p class="settings-subtitle">Settings</p>
+      </div>
+    </header>
+
+    <!-- First-run welcome — shown only until onboarding is marked complete.
+         This is a condensed single-page version of the spec's 6-step wizard
+         (see README for why: kept in-scope given everything else this pass
+         needed to cover), not a separate multi-screen flow. -->
+    <div class="welcome-banner" id="welcomeBanner" hidden>
+      <img src="../assets/logo.png" alt="" class="welcome-logo" />
+      <h2>Welcome to Prayer Bar</h2>
+      <p>Set your location and preferences below, then close this window —
+         Prayer Bar keeps running quietly in the tray.</p>
+      <button class="btn btn-primary" id="btnDismissWelcome">Get started</button>
+    </div>
+
+    <nav class="settings-tabs">
+      <button class="settings-tab" data-tab="general" data-active="true">General</button>
+      <button class="settings-tab" data-tab="location">Location</button>
+      <button class="settings-tab" data-tab="calculation">Calculation</button>
+      <button class="settings-tab" data-tab="adhan">Adhan</button>
+      <button class="settings-tab" data-tab="iqama">Iqama</button>
+      <button class="settings-tab" data-tab="notifications">Notifications</button>
+      <button class="settings-tab" data-tab="appearance">Appearance</button>
+    </nav>
+
+    <main class="settings-body">
+      <!-- GENERAL -->
+      <section class="settings-section" data-section="general" data-active="true">
+        <label class="row">
+          <span>Start with Windows</span>
+          <input type="checkbox" id="fStartWithWindows" />
+        </label>
+        <label class="row">
+          <span>Always on Top</span>
+          <input type="checkbox" id="fAlwaysOnTop" />
+        </label>
+        <label class="row">
+          <span>Show Prayer Bar</span>
+          <input type="checkbox" id="fShowBar" />
+        </label>
+        <label class="row">
+          <span>Position</span>
+          <select id="fPosition">
+            <option value="top-center">Top Center</option>
+            <option value="top-left">Top Left</option>
+            <option value="top-right">Top Right</option>
+          </select>
+        </label>
+        <label class="row">
+          <span>Monitor</span>
+          <select id="fMonitor"></select>
+        </label>
+        <label class="row">
+          <span>Compact bar</span>
+          <input type="checkbox" id="fCompact" />
+        </label>
+
+        <div class="pause-row">
+          <span class="row-label">Pause notifications</span>
+          <div class="pause-buttons">
+            <button class="btn" data-pause="30">30 min</button>
+            <button class="btn" data-pause="60">1 hour</button>
+            <button class="btn" data-pause="next">Until next prayer</button>
+            <button class="btn" data-pause="resume">Resume</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- LOCATION -->
+      <section class="settings-section" data-section="location">
+        <div class="row-column">
+          <span class="row-label">Search for a city</span>
+          <div class="search-row">
+            <input type="text" id="fCitySearch" placeholder="e.g. Ouargla, Algeria" />
+            <button class="btn" id="btnCitySearch">Search</button>
+          </div>
+          <div class="search-results" id="cityResults"></div>
+          <p class="hint" id="citySearchHint"></p>
+        </div>
+
+        <label class="row">
+          <span>Latitude</span>
+          <input type="number" id="fLatitude" step="0.0001" />
+        </label>
+        <label class="row">
+          <span>Longitude</span>
+          <input type="number" id="fLongitude" step="0.0001" />
+        </label>
+        <label class="row">
+          <span>Time zone (IANA)</span>
+          <input type="text" id="fTimeZone" placeholder="e.g. Africa/Algiers" />
+        </label>
+      </section>
+
+      <!-- CALCULATION -->
+      <section class="settings-section" data-section="calculation">
+        <label class="row">
+          <span>Calculation method</span>
+          <select id="fMethod">
+            <option value="MWL">Muslim World League</option>
+            <option value="EGYPT">Egyptian General Authority of Survey</option>
+            <option value="KARACHI">University of Islamic Sciences, Karachi</option>
+            <option value="UMM_AL_QURA">Umm al-Qura, Makkah</option>
+            <option value="DUBAI">Dubai</option>
+            <option value="MOONSIGHTING">Moonsighting Committee Worldwide</option>
+            <option value="ISNA">Islamic Society of North America</option>
+          </select>
+        </label>
+        <label class="row">
+          <span>Madhab (Asr)</span>
+          <select id="fMadhab">
+            <option value="SHAFI">Shafi / Maliki / Hanbali</option>
+            <option value="HANAFI">Hanafi</option>
+          </select>
+        </label>
+
+        <details class="advanced">
+          <summary>Advanced: manual per-prayer offsets (minutes)</summary>
+          <label class="row"><span>Fajr</span><input type="number" id="offFajr" step="1" /></label>
+          <label class="row"><span>Sunrise</span><input type="number" id="offSunrise" step="1" /></label>
+          <label class="row"><span>Dhuhr</span><input type="number" id="offDhuhr" step="1" /></label>
+          <label class="row"><span>Asr</span><input type="number" id="offAsr" step="1" /></label>
+          <label class="row"><span>Maghrib</span><input type="number" id="offMaghrib" step="1" /></label>
+          <label class="row"><span>Isha</span><input type="number" id="offIsha" step="1" /></label>
+        </details>
+      </section>
+
+      <!-- ADHAN -->
+      <section class="settings-section" data-section="adhan">
+        <label class="row">
+          <span>Enable Adhan</span>
+          <input type="checkbox" id="fAdhanEnabled" />
+        </label>
+        <div class="row-column">
+          <span class="row-label">Adhan sound file</span>
+          <div class="search-row">
+            <button class="btn" id="btnChooseAdhan">Choose file…</button>
+            <button class="btn" id="btnTestAdhan">Test</button>
+          </div>
+          <p class="hint" id="adhanFileLabel">No file selected — Adhan will be silent (notification and visual state still fire).</p>
+          <p class="hint">Adhan audio is recitation and can't be bundled with the app — pick your own file (mp3/wav/ogg).</p>
+        </div>
+        <label class="row">
+          <span>Volume</span>
+          <input type="range" id="fVolume" min="0" max="100" step="1" />
+        </label>
+      </section>
+
+      <!-- IQAMA -->
+      <section class="settings-section" data-section="iqama">
+        <label class="row">
+          <span>Enable Iqama countdown</span>
+          <input type="checkbox" id="fIqamaEnabled" />
+        </label>
+        <label class="row"><span>Fajr (min)</span><input type="number" id="iqFajr" min="0" step="1" /></label>
+        <label class="row"><span>Dhuhr (min)</span><input type="number" id="iqDhuhr" min="0" step="1" /></label>
+        <label class="row"><span>Asr (min)</span><input type="number" id="iqAsr" min="0" step="1" /></label>
+        <label class="row"><span>Maghrib (min)</span><input type="number" id="iqMaghrib" min="0" step="1" /></label>
+        <label class="row"><span>Isha (min)</span><input type="number" id="iqIsha" min="0" step="1" /></label>
+        <label class="row">
+          <span>5-minute-before reminder</span>
+          <input type="checkbox" id="fReminderEnabled" />
+        </label>
+        <p class="hint">The reminder uses a short synthesized chime (not a bundled audio file), so it works out of the box with no licensing concerns.</p>
+      </section>
+
+      <!-- NOTIFICATIONS -->
+      <section class="settings-section" data-section="notifications">
+        <label class="row">
+          <span>Enable Windows notifications</span>
+          <input type="checkbox" id="fNotificationsEnabled" />
+        </label>
+        <p class="hint">Pausing (General tab, or the tray menu) suppresses notifications and sounds without stopping the prayer-time calculation underneath.</p>
+      </section>
+
+      <!-- APPEARANCE -->
+      <section class="settings-section" data-section="appearance">
+        <label class="row">
+          <span>Glass opacity</span>
+          <input type="range" id="fOpacity" min="20" max="90" step="1" />
+        </label>
+        <label class="row">
+          <span>Blur intensity</span>
+          <input type="range" id="fBlur" min="0" max="48" step="1" />
+        </label>
+        <label class="row">
+          <span>Accent color</span>
+          <input type="color" id="fAccent" />
+        </label>
+        <label class="row">
+          <span>Compact size</span>
+          <input type="checkbox" id="fCompact2" />
+        </label>
+      </section>
+    </main>
+
+    <footer class="settings-footer">
+      <span class="save-indicator" id="saveIndicator"></span>
+    </footer>
+  </div>
+
+  <script type="module" src="./settings.ts"></script>
+</body>
+</html>

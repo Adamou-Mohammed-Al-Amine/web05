@@ -1,0 +1,46 @@
+:root {
+  --glass-bg: rgba(20, 20, 25, 0.55);
+  --glass-bg-elevated: rgba(24, 24, 30, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-border-strong: rgba(255, 255, 255, 0.22);
+  --glass-blur: 26px;
+  --glass-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
+
+  --text-primary: rgba(255, 255, 255, 0.92);
+  --text-secondary: rgba(255, 255, 255, 0.56);
+  --text-tertiary: rgba(255, 255, 255, 0.38);
+
+  --accent: rgba(120, 170, 255, 0.9);      /* default calm blue accent */
+  --accent-warning: rgba(255, 120, 110, 0.92); /* adhan / iqama-warning red */
+  --accent-paused: rgba(200, 200, 210, 0.7);
+
+  --radius-pill: 999px;
+  --radius-panel: 20px;
+
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 160ms;
+  --dur-medium: 320ms;
+  --dur-slow: 480ms;
+
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+  font-family: -apple-system, "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+.glass-surface {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}

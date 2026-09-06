@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prayer Bar</title>
+  <link rel="stylesheet" href="../styles/glass.css" />
+  <link rel="stylesheet" href="./bar.css" />
+</head>
+<body>
+  <!-- data-tauri-drag-region lets the OS handle window dragging natively -->
+  <div id="bar" class="bar" data-tauri-drag-region>
+    <div class="bar-progress" id="barProgress" aria-hidden="true"></div>
+
+    <div class="bar-content" id="barContent">
+      <span class="bar-icon" id="barIcon">🕌</span>
+
+      <div class="bar-text">
+        <span class="bar-prayer" id="barPrayerName">Maghrib</span>
+        <span class="bar-sep" id="barSep">·</span>
+        <span class="bar-countdown" id="barCountdown">01:42:36</span>
+      </div>
+
+      <div class="bar-controls" id="barControls" hidden>
+        <button class="bar-btn" id="btnStop" title="Stop sound">Stop</button>
+        <button class="bar-btn" id="btnResume" title="Resume" hidden>Resume</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="./bar.ts"></script>
+</body>
+</html>
