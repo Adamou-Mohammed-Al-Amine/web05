@@ -56,7 +56,7 @@ pub fn create_bar_window(app: &AppHandle) -> tauri::Result<()> {
     let position_pref = settings::get_bar_position(app);
     let show_bar = settings::get_show_bar(app);
 
-    let window = WebviewWindowBuilder::new(app, "bar", WebviewUrl::App("bar/index.html".into()))
+    let window = WebviewWindowBuilder::new(app, "bar", WebviewUrl::App("src/bar/index.html".into()))
         .title("Prayer Bar")
         .inner_size(BAR_WIDTH, BAR_HEIGHT)
         .decorations(false)
@@ -95,7 +95,7 @@ pub fn reposition_bar_window(app: &AppHandle) -> tauri::Result<()> {
 /// The small glass panel showing today/tomorrow prayer times. Created lazily
 /// on first click rather than at startup, to keep idle memory minimal.
 pub fn create_panel_window(app: &AppHandle) -> tauri::Result<()> {
-    WebviewWindowBuilder::new(app, "panel", WebviewUrl::App("panel/panel.html".into()))
+    WebviewWindowBuilder::new(app, "panel", WebviewUrl::App("src/panel/panel.html".into()))
         .title("Prayer Bar - Today")
         .inner_size(320.0, 300.0)
         .decorations(false)
@@ -113,7 +113,7 @@ pub fn create_panel_window(app: &AppHandle) -> tauri::Result<()> {
 /// background app. Appears in the taskbar since it's an intentional,
 /// user-facing window rather than an overlay.
 pub fn create_settings_window(app: &AppHandle) -> tauri::Result<()> {
-    WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("settings/settings.html".into()))
+    WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("src/settings/settings.html".into()))
         .title("Prayer Bar Settings")
         .inner_size(560.0, 640.0)
         .decorations(false)
