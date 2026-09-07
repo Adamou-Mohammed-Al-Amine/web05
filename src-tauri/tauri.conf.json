@@ -42,9 +42,7 @@
         "installerIcon": "icons/icon.ico",
         "installMode": "currentUser",
         "languages": ["English"],
-        "displayLanguageSelector": false,
-        "createDesktopShortcut": true,
-        "createStartMenuShortcut": true
+        "displayLanguageSelector": false
       }
     }
   }
