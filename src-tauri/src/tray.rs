@@ -42,7 +42,7 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
         &[&pause_30, &pause_60, &pause_until_next, &pause_sep, &pause_resume],
     )?;
 
-    let todays_prayers = MenuItem::with_id(app, "todays_prayers", "Today's Prayers", true, None::<&str>)?;
+    let todays_prayers = MenuItem::with_id(app, "todays_prayers", "Open Prayer Bar", true, None::<&str>)?;
     let settings_item = MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
     let separator = PredefinedMenuItem::separator(app)?;

@@ -26,12 +26,12 @@ const el = {
 };
 
 const PRAYER_LABELS: Record<PrayerName, string> = {
-  fajr: "Fajr",
-  sunrise: "Sunrise",
-  dhuhr: "Dhuhr",
-  asr: "Asr",
-  maghrib: "Maghrib",
-  isha: "Isha",
+  fajr: "الفجر",
+  sunrise: "الشروق",
+  dhuhr: "الظهر",
+  asr: "العصر",
+  maghrib: "المغرب",
+  isha: "العشاء",
 };
 
 function formatCountdown(totalSeconds: number): string {
@@ -62,7 +62,7 @@ async function notify(title: string, body: string) {
 }
 
 async function onEnterAdhan(prayer: PrayerName) {
-  await notify(PRAYER_LABELS[prayer], `It's time for ${PRAYER_LABELS[prayer]} prayer.`);
+  await notify(PRAYER_LABELS[prayer], `حان الآن وقت صلاة ${PRAYER_LABELS[prayer]}.`);
 
   if (!currentSettings?.adhanEnabled) return;
   const path = currentSettings.adhanSoundPath;
@@ -78,7 +78,7 @@ async function onEnterAdhan(prayer: PrayerName) {
 
 async function onEnterIqamaWarning(prayer: PrayerName) {
   if (!currentSettings?.reminderEnabled) return;
-  await notify(`${PRAYER_LABELS[prayer]} Iqama`, "Iqama will begin in 5 minutes.");
+  await notify(`إقامة ${PRAYER_LABELS[prayer]}`, "ستبدأ الإقامة بعد 5 دقائق.");
   playChime(currentSettings.adhanVolume);
 }
 
@@ -161,16 +161,16 @@ function render(barState: BarState, prayer: PrayerName, secondsRemaining: number
   switch (barState) {
     case "adhan":
       el.icon.textContent = "🕌";
-      el.countdown.textContent = "Prayer time";
+      el.countdown.textContent = "حان وقت الصلاة";
       break;
     case "iqama":
     case "iqamaWarning":
       el.icon.textContent = "🔴";
-      el.countdown.textContent = `Iqama in ${formatCountdown(secondsRemaining)}`;
+      el.countdown.textContent = `الإقامة بعد ${formatCountdown(secondsRemaining)}`;
       break;
     case "paused":
       el.icon.textContent = "⏸";
-      el.prayerName.textContent = "Notifications paused";
+      el.prayerName.textContent = "الإشعارات متوقفة مؤقتًا";
       el.countdown.textContent = "";
       break;
     default: // normal | close

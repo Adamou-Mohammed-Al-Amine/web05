@@ -84,7 +84,7 @@ let settings: AppSettings;
 let saveIndicatorTimeout: number | undefined;
 
 function flashSaved() {
-  f.saveIndicator.textContent = "Saved";
+  f.saveIndicator.textContent = "تم الحفظ";
   f.saveIndicator.classList.add("visible");
   window.clearTimeout(saveIndicatorTimeout);
   saveIndicatorTimeout = window.setTimeout(() => f.saveIndicator.classList.remove("visible"), 1200);
@@ -174,14 +174,14 @@ async function populateMonitors(selected: string | null) {
 
   const primaryOpt = document.createElement("option");
   primaryOpt.value = "__primary__";
-  primaryOpt.textContent = "Primary monitor";
+  primaryOpt.textContent = "الشاشة الرئيسية";
   f.monitor.appendChild(primaryOpt);
 
   for (const m of monitors) {
     if (!m.name) continue;
     const opt = document.createElement("option");
     opt.value = m.name;
-    opt.textContent = `${m.name} (${m.width}×${m.height})${m.is_primary ? " — primary" : ""}`;
+    opt.textContent = `${m.name} (${m.width}×${m.height})${m.is_primary ? " — رئيسية" : ""}`;
     f.monitor.appendChild(opt);
   }
 
@@ -206,7 +206,7 @@ f.citySearch.addEventListener("keydown", (e) => {
 f.btnDetectLocation.addEventListener("click", async () => {
   f.btnDetectLocation.disabled = true;
   const originalLabel = f.btnDetectLocation.textContent;
-  f.btnDetectLocation.textContent = "Detecting…";
+  f.btnDetectLocation.textContent = "جارٍ الكشف…";
   f.detectLocationHint.textContent = "";
 
   const detected = await detectCurrentLocation();
@@ -215,7 +215,7 @@ f.btnDetectLocation.addEventListener("click", async () => {
   f.btnDetectLocation.textContent = originalLabel;
 
   if (!detected) {
-    f.detectLocationHint.textContent = "Couldn't detect your location — check your internet connection, or search/enter it manually below.";
+    f.detectLocationHint.textContent = "تعذّر تحديد موقعك — تأكد من اتصالك بالإنترنت، أو ابحث/أدخل الموقع يدويًا تحت.";
     return;
   }
 
@@ -233,10 +233,10 @@ f.btnDetectLocation.addEventListener("click", async () => {
     },
   });
 
-  const place = [detected.city, detected.country].filter(Boolean).join(", ");
+  const place = [detected.city, detected.country].filter(Boolean).join("، ");
   f.detectLocationHint.textContent = place
-    ? `Detected: ${place}. Double-check the time zone field is correct.`
-    : "Location detected. Double-check the fields above are correct.";
+    ? `تم تحديد الموقع: ${place}. تأكد من صحة المنطقة الزمنية.`
+    : "تم تحديد الموقع. تأكد من صحة الحقول أعلاه.";
 });
 
 async function runCitySearch() {
@@ -244,14 +244,14 @@ async function runCitySearch() {
   if (query.length < 2) return;
 
   const token = ++citySearchToken;
-  f.citySearchHint.textContent = "Searching…";
+  f.citySearchHint.textContent = "جارٍ البحث…";
   f.cityResults.innerHTML = "";
 
   const results = await searchCities(query);
   if (token !== citySearchToken) return; // a newer search superseded this one
 
   if (results.length === 0) {
-    f.citySearchHint.textContent = "No results — check your connection, or enter coordinates manually below.";
+    f.citySearchHint.textContent = "لا توجد نتائج — تأكد من اتصالك بالإنترنت، أو أدخل الإحداثيات يدويًا تحت.";
     return;
   }
   f.citySearchHint.textContent = "";
@@ -323,8 +323,8 @@ function populateAdhan(s: AppSettings) {
   f.adhanEnabled.checked = s.adhanEnabled;
   f.volume.value = String(Math.round(s.adhanVolume * 100));
   f.adhanFileLabel.textContent = s.adhanSoundPath
-    ? `Selected: ${s.adhanSoundPath.split(/[\\/]/).pop()}`
-    : "No file selected — Adhan will be silent (notification and visual state still fire).";
+    ? `الملف المختار: ${s.adhanSoundPath.split(/[\\/]/).pop()}`
+    : "لم يتم اختيار ملف — الأذان سيكون صامتًا (الإشعار والحالة المرئية تعمل رغم ذلك).";
 }
 
 f.adhanEnabled.addEventListener("change", () => update({ adhanEnabled: f.adhanEnabled.checked }));
@@ -343,11 +343,11 @@ f.btnChooseAdhan.addEventListener("click", async () => {
       purpose: "adhan",
     });
     if (!destPath) {
-      f.adhanFileLabel.textContent = "Couldn't import that file — please try another.";
+      f.adhanFileLabel.textContent = "تعذّر استيراد هذا الملف — جرّب ملفًا آخر.";
       return;
     }
     await update({ adhanSoundPath: destPath });
-    f.adhanFileLabel.textContent = `Selected: ${destPath.split(/[\\/]/).pop()}`;
+    f.adhanFileLabel.textContent = `الملف المختار: ${destPath.split(/[\\/]/).pop()}`;
   } catch (e) {
     console.warn("Adhan file picker failed", e);
   }
@@ -355,7 +355,7 @@ f.btnChooseAdhan.addEventListener("click", async () => {
 
 f.btnTestAdhan.addEventListener("click", async () => {
   if (!settings.adhanSoundPath) {
-    f.adhanFileLabel.textContent = "Choose a file first to test it.";
+    f.adhanFileLabel.textContent = "اختر ملفًا أولًا لتجربته.";
     return;
   }
   try {

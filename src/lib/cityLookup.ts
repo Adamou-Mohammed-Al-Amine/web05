@@ -95,29 +95,40 @@ export interface DetectedLocation {
 }
 
 const IP_GEOLOCATION_ENDPOINT = "https://get.geojs.io/v1/ip/geo.json";
+const IP_GEOLOCATION_FALLBACK_ENDPOINT = "https://ipapi.co/json/";
 
 /**
  * Detects the user's approximate location from their IP address, for a
  * one-click "use my current location" option alongside manual city search.
- * GeoJS is used specifically because it advertises full CORS support for
- * browser/frontend use (many free IP-geolocation APIs don't, or it's
- * undocumented) — confirmed via its own documentation, though the live call
- * itself couldn't be exercised in the sandbox this was written in (same
- * network-allowlist limitation noted in searchCities above).
+ * Tries GeoJS first (documented full CORS support), then falls back to
+ * ipapi.co if that fails for any reason — one free IP-geolocation service
+ * being temporarily down/rate-limited/blocked shouldn't be a dead end.
  *
  * IP-based geolocation is approximate (city/region level, sometimes off by
  * tens of km) — accurate enough for prayer-time calculation, but the
  * Settings UI should let the user verify/adjust the fields afterward.
  */
 export async function detectCurrentLocation(): Promise<DetectedLocation | null> {
+  const primary = await tryDetectFrom(IP_GEOLOCATION_ENDPOINT, "geojs");
+  if (primary) return primary;
+  return await tryDetectFrom(IP_GEOLOCATION_FALLBACK_ENDPOINT, "ipapi");
+}
+
+async function tryDetectFrom(endpoint: string, provider: "geojs" | "ipapi"): Promise<DetectedLocation | null> {
   try {
-    const response = await fetch(IP_GEOLOCATION_ENDPOINT);
-    if (!response.ok) return null;
+    const response = await fetch(endpoint);
+    if (!response.ok) {
+      console.warn(`[location] ${provider} responded with status ${response.status}`);
+      return null;
+    }
     const data = await response.json();
 
-    const latitude = parseFloat(data.latitude);
-    const longitude = parseFloat(data.longitude);
-    if (Number.isNaN(latitude) || Number.isNaN(longitude)) return null;
+    const latitude = parseFloat(provider === "ipapi" ? data.latitude : data.latitude);
+    const longitude = parseFloat(provider === "ipapi" ? data.longitude : data.longitude);
+    if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+      console.warn(`[location] ${provider} response missing usable lat/lon:`, data);
+      return null;
+    }
 
     const timeZoneId = typeof data.timezone === "string" && data.timezone.length > 0 ? data.timezone : null;
 
@@ -126,9 +137,10 @@ export async function detectCurrentLocation(): Promise<DetectedLocation | null> 
       longitude,
       timeZoneId,
       city: typeof data.city === "string" ? data.city : undefined,
-      country: typeof data.country === "string" ? data.country : undefined,
+      country: typeof (data.country ?? data.country_name) === "string" ? (data.country ?? data.country_name) : undefined,
     };
-  } catch {
+  } catch (e) {
+    console.warn(`[location] ${provider} request failed:`, e);
     return null;
   }
 }

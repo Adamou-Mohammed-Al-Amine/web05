@@ -1,220 +1,217 @@
 <!doctype html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Prayer Bar Settings</title>
-  <link rel="stylesheet" href="../styles/glass.css" />
+  <title>إعدادات بار الصلاة</title>
   <link rel="stylesheet" href="./settings.css" />
 </head>
 <body>
-  <div class="settings-shell glass-surface">
-    <header class="settings-header" data-tauri-drag-region>
+  <div class="settings-shell">
+    <header class="settings-header">
       <img src="../assets/logo.png" alt="" class="settings-logo" />
       <div>
-        <h1>Prayer Bar</h1>
-        <p class="settings-subtitle">Settings</p>
+        <h1>بار الصلاة</h1>
+        <p class="settings-subtitle">الإعدادات</p>
       </div>
     </header>
 
-    <!-- First-run welcome — shown only until onboarding is marked complete.
-         This is a condensed single-page version of the spec's 6-step wizard
-         (see README for why: kept in-scope given everything else this pass
-         needed to cover), not a separate multi-screen flow. -->
+    <!-- شاشة ترحيب تظهر مرة واحدة فقط عند أول تشغيل -->
     <div class="welcome-banner" id="welcomeBanner" hidden>
       <img src="../assets/logo.png" alt="" class="welcome-logo" />
-      <h2>Welcome to Prayer Bar</h2>
-      <p>Set your location and preferences below, then close this window —
-         Prayer Bar keeps running quietly in the tray.</p>
-      <button class="btn btn-primary" id="btnDismissWelcome">Get started</button>
+      <h2>مرحبًا بك في بار الصلاة</h2>
+      <p>اضبط موقعك وتفضيلاتك تحت، بعدها أغلق هذه النافذة —
+         بار الصلاة يبقى يشتغل بهدوء في شريط النظام (Tray).</p>
+      <button class="btn btn-primary" id="btnDismissWelcome">ابدأ</button>
     </div>
 
     <nav class="settings-tabs">
-      <button class="settings-tab" data-tab="general" data-active="true">General</button>
-      <button class="settings-tab" data-tab="location">Location</button>
-      <button class="settings-tab" data-tab="calculation">Calculation</button>
-      <button class="settings-tab" data-tab="adhan">Adhan</button>
-      <button class="settings-tab" data-tab="iqama">Iqama</button>
-      <button class="settings-tab" data-tab="notifications">Notifications</button>
-      <button class="settings-tab" data-tab="appearance">Appearance</button>
+      <button class="settings-tab" data-tab="general" data-active="true">عام</button>
+      <button class="settings-tab" data-tab="location">الموقع</button>
+      <button class="settings-tab" data-tab="calculation">طريقة الحساب</button>
+      <button class="settings-tab" data-tab="adhan">الأذان</button>
+      <button class="settings-tab" data-tab="iqama">الإقامة</button>
+      <button class="settings-tab" data-tab="notifications">الإشعارات</button>
+      <button class="settings-tab" data-tab="appearance">المظهر</button>
     </nav>
 
     <main class="settings-body">
-      <!-- GENERAL -->
+      <!-- عام -->
       <section class="settings-section" data-section="general" data-active="true">
         <label class="row">
-          <span>Start with Windows</span>
+          <span>التشغيل مع ويندوز</span>
           <input type="checkbox" id="fStartWithWindows" />
         </label>
         <label class="row">
-          <span>Always on Top</span>
+          <span>البقاء دائمًا في المقدمة (Always on Top)</span>
           <input type="checkbox" id="fAlwaysOnTop" />
         </label>
         <label class="row">
-          <span>Show Prayer Bar</span>
+          <span>إظهار البار العائم</span>
           <input type="checkbox" id="fShowBar" />
         </label>
         <label class="row">
-          <span>Position</span>
+          <span>موضع البار</span>
           <select id="fPosition">
-            <option value="top-center">Top Center</option>
-            <option value="top-left">Top Left</option>
-            <option value="top-right">Top Right</option>
+            <option value="top-center">أعلى الوسط</option>
+            <option value="top-left">أعلى اليسار</option>
+            <option value="top-right">أعلى اليمين</option>
           </select>
         </label>
         <label class="row">
-          <span>Monitor</span>
+          <span>الشاشة</span>
           <select id="fMonitor"></select>
         </label>
         <label class="row">
-          <span>Compact bar</span>
+          <span>بار مصغّر (Compact)</span>
           <input type="checkbox" id="fCompact" />
         </label>
 
         <div class="pause-row">
-          <span class="row-label">Pause notifications</span>
+          <span class="row-label">إيقاف الإشعارات مؤقتًا</span>
           <div class="pause-buttons">
-            <button class="btn" data-pause="30">30 min</button>
-            <button class="btn" data-pause="60">1 hour</button>
-            <button class="btn" data-pause="next">Until next prayer</button>
-            <button class="btn" data-pause="resume">Resume</button>
+            <button class="btn" data-pause="30">30 دقيقة</button>
+            <button class="btn" data-pause="60">ساعة واحدة</button>
+            <button class="btn" data-pause="next">حتى الصلاة القادمة</button>
+            <button class="btn" data-pause="resume">استئناف</button>
           </div>
         </div>
       </section>
 
-      <!-- LOCATION -->
+      <!-- الموقع -->
       <section class="settings-section" data-section="location">
         <div class="row-column">
-          <span class="row-label">Use my current location automatically (via internet)</span>
+          <span class="row-label">استخدم موقعك الحالي تلقائيًا (عبر الإنترنت)</span>
           <div class="search-row">
-            <button class="btn btn-primary" id="btnDetectLocation">📍 Detect my location</button>
+            <button class="btn btn-primary" id="btnDetectLocation">📍 اكتشف موقعي</button>
           </div>
-          <p class="hint" id="detectLocationHint">Estimates your location from your internet connection — accurate enough for prayer-time calculation. Double-check the fields below afterward.</p>
+          <p class="hint" id="detectLocationHint">يحدد موقعك التقريبي من اتصالك بالإنترنت — دقيق بما يكفي لحساب أوقات الصلاة. تأكد من الحقول تحت بعدها.</p>
         </div>
 
         <div class="row-column">
-          <span class="row-label">Or search for a city manually</span>
+          <span class="row-label">أو ابحث عن مدينة يدويًا</span>
           <div class="search-row">
-            <input type="text" id="fCitySearch" placeholder="e.g. Ouargla, Algeria" />
-            <button class="btn" id="btnCitySearch">Search</button>
+            <input type="text" id="fCitySearch" placeholder="مثال: ورقلة، الجزائر" />
+            <button class="btn" id="btnCitySearch">بحث</button>
           </div>
           <div class="search-results" id="cityResults"></div>
           <p class="hint" id="citySearchHint"></p>
         </div>
 
         <label class="row">
-          <span>Latitude</span>
+          <span>خط العرض (Latitude)</span>
           <input type="number" id="fLatitude" step="0.0001" />
         </label>
         <label class="row">
-          <span>Longitude</span>
+          <span>خط الطول (Longitude)</span>
           <input type="number" id="fLongitude" step="0.0001" />
         </label>
         <label class="row">
-          <span>Time zone (IANA)</span>
-          <input type="text" id="fTimeZone" placeholder="e.g. Africa/Algiers" />
+          <span>المنطقة الزمنية (IANA)</span>
+          <input type="text" id="fTimeZone" placeholder="مثال: Africa/Algiers" />
         </label>
       </section>
 
-      <!-- CALCULATION -->
+      <!-- طريقة الحساب -->
       <section class="settings-section" data-section="calculation">
         <label class="row">
-          <span>Calculation method</span>
+          <span>طريقة الحساب</span>
           <select id="fMethod">
-            <option value="MWL">Muslim World League</option>
-            <option value="EGYPT">Egyptian General Authority of Survey</option>
-            <option value="KARACHI">University of Islamic Sciences, Karachi</option>
-            <option value="UMM_AL_QURA">Umm al-Qura, Makkah</option>
-            <option value="DUBAI">Dubai</option>
-            <option value="MOONSIGHTING">Moonsighting Committee Worldwide</option>
-            <option value="ISNA">Islamic Society of North America</option>
+            <option value="MWL">رابطة العالم الإسلامي</option>
+            <option value="EGYPT">الهيئة المصرية العامة للمساحة</option>
+            <option value="KARACHI">جامعة العلوم الإسلامية، كراتشي</option>
+            <option value="UMM_AL_QURA">أم القرى، مكة المكرمة</option>
+            <option value="DUBAI">دبي</option>
+            <option value="MOONSIGHTING">لجنة رؤية الهلال العالمية</option>
+            <option value="ISNA">الجمعية الإسلامية لأمريكا الشمالية</option>
           </select>
         </label>
         <label class="row">
-          <span>Madhab (Asr)</span>
+          <span>المذهب (لحساب العصر)</span>
           <select id="fMadhab">
-            <option value="SHAFI">Shafi / Maliki / Hanbali</option>
-            <option value="HANAFI">Hanafi</option>
+            <option value="SHAFI">شافعي / مالكي / حنبلي</option>
+            <option value="HANAFI">حنفي</option>
           </select>
         </label>
 
         <details class="advanced">
-          <summary>Advanced: manual per-prayer offsets (minutes)</summary>
-          <label class="row"><span>Fajr</span><input type="number" id="offFajr" step="1" /></label>
-          <label class="row"><span>Sunrise</span><input type="number" id="offSunrise" step="1" /></label>
-          <label class="row"><span>Dhuhr</span><input type="number" id="offDhuhr" step="1" /></label>
-          <label class="row"><span>Asr</span><input type="number" id="offAsr" step="1" /></label>
-          <label class="row"><span>Maghrib</span><input type="number" id="offMaghrib" step="1" /></label>
-          <label class="row"><span>Isha</span><input type="number" id="offIsha" step="1" /></label>
+          <summary>متقدم: تعديل يدوي لكل صلاة (بالدقائق)</summary>
+          <label class="row"><span>الفجر</span><input type="number" id="offFajr" step="1" /></label>
+          <label class="row"><span>الشروق</span><input type="number" id="offSunrise" step="1" /></label>
+          <label class="row"><span>الظهر</span><input type="number" id="offDhuhr" step="1" /></label>
+          <label class="row"><span>العصر</span><input type="number" id="offAsr" step="1" /></label>
+          <label class="row"><span>المغرب</span><input type="number" id="offMaghrib" step="1" /></label>
+          <label class="row"><span>العشاء</span><input type="number" id="offIsha" step="1" /></label>
         </details>
       </section>
 
-      <!-- ADHAN -->
+      <!-- الأذان -->
       <section class="settings-section" data-section="adhan">
         <label class="row">
-          <span>Enable Adhan</span>
+          <span>تفعيل الأذان</span>
           <input type="checkbox" id="fAdhanEnabled" />
         </label>
         <div class="row-column">
-          <span class="row-label">Adhan sound file</span>
+          <span class="row-label">ملف صوت الأذان</span>
           <div class="search-row">
-            <button class="btn" id="btnChooseAdhan">Choose file…</button>
-            <button class="btn" id="btnTestAdhan">Test</button>
+            <button class="btn" id="btnChooseAdhan">اختر ملفًا…</button>
+            <button class="btn" id="btnTestAdhan">تجربة</button>
           </div>
-          <p class="hint" id="adhanFileLabel">No file selected — Adhan will be silent (notification and visual state still fire).</p>
-          <p class="hint">Adhan audio is recitation and can't be bundled with the app — pick your own file (mp3/wav/ogg).</p>
+          <p class="hint" id="adhanFileLabel">لم يتم اختيار ملف — الأذان سيكون صامتًا (الإشعار والحالة المرئية تعمل رغم ذلك).</p>
+          <p class="hint">صوت الأذان تلاوة دينية ولا يمكن تضمينه مع التطبيق — اختر ملفك الخاص (mp3/wav/ogg).</p>
         </div>
         <label class="row">
-          <span>Volume</span>
+          <span>مستوى الصوت</span>
           <input type="range" id="fVolume" min="0" max="100" step="1" />
         </label>
       </section>
 
-      <!-- IQAMA -->
+      <!-- الإقامة -->
       <section class="settings-section" data-section="iqama">
         <label class="row">
-          <span>Enable Iqama countdown</span>
+          <span>تفعيل العد التنازلي للإقامة</span>
           <input type="checkbox" id="fIqamaEnabled" />
         </label>
-        <label class="row"><span>Fajr (min)</span><input type="number" id="iqFajr" min="0" step="1" /></label>
-        <label class="row"><span>Dhuhr (min)</span><input type="number" id="iqDhuhr" min="0" step="1" /></label>
-        <label class="row"><span>Asr (min)</span><input type="number" id="iqAsr" min="0" step="1" /></label>
-        <label class="row"><span>Maghrib (min)</span><input type="number" id="iqMaghrib" min="0" step="1" /></label>
-        <label class="row"><span>Isha (min)</span><input type="number" id="iqIsha" min="0" step="1" /></label>
+        <label class="row"><span>الفجر (دقيقة)</span><input type="number" id="iqFajr" min="0" step="1" /></label>
+        <label class="row"><span>الظهر (دقيقة)</span><input type="number" id="iqDhuhr" min="0" step="1" /></label>
+        <label class="row"><span>العصر (دقيقة)</span><input type="number" id="iqAsr" min="0" step="1" /></label>
+        <label class="row"><span>المغرب (دقيقة)</span><input type="number" id="iqMaghrib" min="0" step="1" /></label>
+        <label class="row"><span>العشاء (دقيقة)</span><input type="number" id="iqIsha" min="0" step="1" /></label>
         <label class="row">
-          <span>5-minute-before reminder</span>
+          <span>تذكير قبل 5 دقائق من الإقامة</span>
           <input type="checkbox" id="fReminderEnabled" />
         </label>
-        <p class="hint">The reminder uses a short synthesized chime (not a bundled audio file), so it works out of the box with no licensing concerns.</p>
+        <p class="hint">التذكير يستخدم نغمة قصيرة مولّدة داخليًا (وليس ملفًا صوتيًا)، فهو يعمل مباشرة بلا أي إعداد إضافي.</p>
       </section>
 
-      <!-- NOTIFICATIONS -->
+      <!-- الإشعارات -->
       <section class="settings-section" data-section="notifications">
         <label class="row">
-          <span>Enable Windows notifications</span>
+          <span>تفعيل إشعارات ويندوز</span>
           <input type="checkbox" id="fNotificationsEnabled" />
         </label>
-        <p class="hint">Pausing (General tab, or the tray menu) suppresses notifications and sounds without stopping the prayer-time calculation underneath.</p>
+        <p class="hint">الإيقاف المؤقت (من تبويب "عام" أو من شريط النظام) يوقف الإشعارات والأصوات فقط، بينما حساب أوقات الصلاة يستمر في الخلفية.</p>
       </section>
 
-      <!-- APPEARANCE -->
+      <!-- المظهر -->
       <section class="settings-section" data-section="appearance">
         <label class="row">
-          <span>Glass opacity</span>
+          <span>شفافية الزجاج (البار العائم فقط)</span>
           <input type="range" id="fOpacity" min="20" max="90" step="1" />
         </label>
         <label class="row">
-          <span>Blur intensity</span>
+          <span>شدة الضبابية (Blur)</span>
           <input type="range" id="fBlur" min="0" max="48" step="1" />
         </label>
         <label class="row">
-          <span>Accent color</span>
+          <span>لون التمييز (Accent)</span>
           <input type="color" id="fAccent" />
         </label>
         <label class="row">
-          <span>Compact size</span>
+          <span>الحجم المصغّر</span>
           <input type="checkbox" id="fCompact2" />
         </label>
+        <p class="hint">هذه الإعدادات تخص تصميم البار العائم الزجاجي فقط — نافذتا الإعدادات والواجهة الرئيسية بتصميم عادي غير شفاف.</p>
       </section>
     </main>
 

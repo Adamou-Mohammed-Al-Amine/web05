@@ -92,32 +92,33 @@ pub fn reposition_bar_window(app: &AppHandle) -> tauri::Result<()> {
     Ok(())
 }
 
-/// The small glass panel showing today/tomorrow prayer times. Created lazily
-/// on first click rather than at startup, to keep idle memory minimal.
+/// The main window: current time, next-prayer countdown, and today's full
+/// prayer schedule. A normal window now (not a floating overlay) — native
+/// title bar for easy move/close/minimize, opaque background, shows in the
+/// taskbar. Created lazily on first open rather than at startup, to keep
+/// idle memory minimal when the user only wants the floating bar.
 pub fn create_panel_window(app: &AppHandle) -> tauri::Result<()> {
     WebviewWindowBuilder::new(app, "panel", WebviewUrl::App("src/panel/panel.html".into()))
-        .title("Prayer Bar - Today")
-        .inner_size(320.0, 300.0)
-        .decorations(false)
-        .transparent(true)
-        .always_on_top(true)
-        .skip_taskbar(true)
-        .resizable(false)
+        .title("بار الصلاة")
+        .inner_size(480.0, 620.0)
+        .min_inner_size(380.0, 480.0)
+        .decorations(true)
+        .transparent(false)
+        .resizable(true)
         .visible(false)
         .build()?;
     Ok(())
 }
 
-/// Settings window — a normal-ish window (still borderless/glass for visual
-/// consistency) that the user can move/close freely without affecting the
-/// background app. Appears in the taskbar since it's an intentional,
-/// user-facing window rather than an overlay.
+/// Settings window — a normal window with the native title bar (move/close/
+/// minimize all work out of the box), opaque background. The user can move
+/// or close it freely without affecting the background app.
 pub fn create_settings_window(app: &AppHandle) -> tauri::Result<()> {
     WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("src/settings/settings.html".into()))
-        .title("Prayer Bar Settings")
+        .title("إعدادات بار الصلاة")
         .inner_size(560.0, 640.0)
-        .decorations(false)
-        .transparent(true)
+        .decorations(true)
+        .transparent(false)
         .resizable(true)
         .min_inner_size(480.0, 480.0)
         .skip_taskbar(false)
