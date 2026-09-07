@@ -1,15 +1,12 @@
 use tauri::{
     menu::{CheckMenuItem, Menu, MenuItem, PredefinedMenuItem, Submenu},
     tray::TrayIconBuilder,
-    image::Image,
     AppHandle, Emitter, Manager,
 };
 use serde::Serialize;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::{settings, windows};
-
-const TRAY_ICON_BYTES: &[u8] = include_bytes!("../icons/tray-icon.png");
 
 #[derive(Clone, Serialize)]
 struct PauseSetPayload {
@@ -64,12 +61,16 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
         ],
     )?;
 
-    let icon = Image::from_bytes(TRAY_ICON_BYTES).ok();
-
+    // Reuses the app's main icon (loaded correctly by Tauri itself from the
+    // `.ico` referenced in tauri.conf.json's `bundle.icon`) rather than
+    // decoding raw bytes by hand — `Image::from_bytes` doesn't exist in
+    // tauri 2.11's API (confirmed by a real compile error); `Image::new`/
+    // `new_owned` only accept already-decoded raw RGBA pixels, which isn't
+    // worth adding an image-decoding dependency for when this achieves the
+    // same visible result. The .ico's multiple embedded resolutions let the
+    // OS pick an appropriately-sized bitmap for the small tray area.
     let mut builder = TrayIconBuilder::new().tooltip("Prayer Bar").menu(&menu);
-    if let Some(icon) = icon {
-        builder = builder.icon(icon);
-    } else if let Some(default_icon) = app.default_window_icon() {
+    if let Some(default_icon) = app.default_window_icon() {
         builder = builder.icon(default_icon.clone());
     }
 
