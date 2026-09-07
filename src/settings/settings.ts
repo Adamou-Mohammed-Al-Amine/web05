@@ -1,5 +1,5 @@
 import { getSettings, saveSettings, invalidateSettingsCache, AppSettings } from "../lib/store";
-import { searchCities, cityResultToLocation, formatCityLabel, CitySearchResult } from "../lib/cityLookup";
+import { searchCities, cityResultToLocation, formatCityLabel, detectCurrentLocation, CitySearchResult } from "../lib/cityLookup";
 import { playAdhanFile, stopAdhan } from "../lib/audio";
 import { PrayerName } from "../lib/prayerCalc";
 
@@ -38,6 +38,8 @@ const f = {
 
   citySearch: document.getElementById("fCitySearch") as HTMLInputElement,
   btnCitySearch: document.getElementById("btnCitySearch") as HTMLButtonElement,
+  btnDetectLocation: document.getElementById("btnDetectLocation") as HTMLButtonElement,
+  detectLocationHint: document.getElementById("detectLocationHint") as HTMLParagraphElement,
   cityResults: document.getElementById("cityResults") as HTMLDivElement,
   citySearchHint: document.getElementById("citySearchHint") as HTMLParagraphElement,
   latitude: document.getElementById("fLatitude") as HTMLInputElement,
@@ -199,6 +201,42 @@ let citySearchToken = 0;
 f.btnCitySearch.addEventListener("click", () => runCitySearch());
 f.citySearch.addEventListener("keydown", (e) => {
   if (e.key === "Enter") runCitySearch();
+});
+
+f.btnDetectLocation.addEventListener("click", async () => {
+  f.btnDetectLocation.disabled = true;
+  const originalLabel = f.btnDetectLocation.textContent;
+  f.btnDetectLocation.textContent = "Detecting…";
+  f.detectLocationHint.textContent = "";
+
+  const detected = await detectCurrentLocation();
+
+  f.btnDetectLocation.disabled = false;
+  f.btnDetectLocation.textContent = originalLabel;
+
+  if (!detected) {
+    f.detectLocationHint.textContent = "Couldn't detect your location — check your internet connection, or search/enter it manually below.";
+    return;
+  }
+
+  f.latitude.value = String(detected.latitude);
+  f.longitude.value = String(detected.longitude);
+  if (detected.timeZoneId) {
+    f.timeZone.value = detected.timeZoneId;
+  }
+
+  await update({
+    location: {
+      latitude: detected.latitude,
+      longitude: detected.longitude,
+      timeZoneId: detected.timeZoneId ?? f.timeZone.value.trim(),
+    },
+  });
+
+  const place = [detected.city, detected.country].filter(Boolean).join(", ");
+  f.detectLocationHint.textContent = place
+    ? `Detected: ${place}. Double-check the time zone field is correct.`
+    : "Location detected. Double-check the fields above are correct.";
 });
 
 async function runCitySearch() {

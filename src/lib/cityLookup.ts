@@ -85,3 +85,50 @@ export function formatCityLabel(result: CitySearchResult): string {
   if (result.country) parts.push(result.country);
   return parts.join(", ");
 }
+
+export interface DetectedLocation {
+  latitude: number;
+  longitude: number;
+  timeZoneId: string | null; // null if the service didn't return one — caller should let the user confirm/edit it
+  city?: string;
+  country?: string;
+}
+
+const IP_GEOLOCATION_ENDPOINT = "https://get.geojs.io/v1/ip/geo.json";
+
+/**
+ * Detects the user's approximate location from their IP address, for a
+ * one-click "use my current location" option alongside manual city search.
+ * GeoJS is used specifically because it advertises full CORS support for
+ * browser/frontend use (many free IP-geolocation APIs don't, or it's
+ * undocumented) — confirmed via its own documentation, though the live call
+ * itself couldn't be exercised in the sandbox this was written in (same
+ * network-allowlist limitation noted in searchCities above).
+ *
+ * IP-based geolocation is approximate (city/region level, sometimes off by
+ * tens of km) — accurate enough for prayer-time calculation, but the
+ * Settings UI should let the user verify/adjust the fields afterward.
+ */
+export async function detectCurrentLocation(): Promise<DetectedLocation | null> {
+  try {
+    const response = await fetch(IP_GEOLOCATION_ENDPOINT);
+    if (!response.ok) return null;
+    const data = await response.json();
+
+    const latitude = parseFloat(data.latitude);
+    const longitude = parseFloat(data.longitude);
+    if (Number.isNaN(latitude) || Number.isNaN(longitude)) return null;
+
+    const timeZoneId = typeof data.timezone === "string" && data.timezone.length > 0 ? data.timezone : null;
+
+    return {
+      latitude,
+      longitude,
+      timeZoneId,
+      city: typeof data.city === "string" ? data.city : undefined,
+      country: typeof data.country === "string" ? data.country : undefined,
+    };
+  } catch {
+    return null;
+  }
+}

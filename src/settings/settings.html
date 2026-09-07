@@ -85,7 +85,15 @@
       <!-- LOCATION -->
       <section class="settings-section" data-section="location">
         <div class="row-column">
-          <span class="row-label">Search for a city</span>
+          <span class="row-label">Use my current location automatically (via internet)</span>
+          <div class="search-row">
+            <button class="btn btn-primary" id="btnDetectLocation">📍 Detect my location</button>
+          </div>
+          <p class="hint" id="detectLocationHint">Estimates your location from your internet connection — accurate enough for prayer-time calculation. Double-check the fields below afterward.</p>
+        </div>
+
+        <div class="row-column">
+          <span class="row-label">Or search for a city manually</span>
           <div class="search-row">
             <input type="text" id="fCitySearch" placeholder="e.g. Ouargla, Algeria" />
             <button class="btn" id="btnCitySearch">Search</button>
