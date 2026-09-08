@@ -223,6 +223,32 @@ export function calculateDailyTimes(
 export type PrayerName = "fajr" | "sunrise" | "dhuhr" | "asr" | "maghrib" | "isha";
 export const ADHAN_PRAYERS: PrayerName[] = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
 
+/**
+ * Builds a DailyPrayerTimes object from fixed "HH:MM" clock times for a
+ * given calendar date — used when the user enables manual prayer times
+ * (a fixed daily schedule, like a printed masjid timetable) instead of
+ * astronomical calculation.
+ */
+export function manualTimesToDaily(date: Date, manual: ManualTimesLike): DailyPrayerTimes {
+  const build = (hhmm: string): Date => {
+    const [h, m] = hhmm.split(":").map(Number);
+    const d = new Date(date.getFullYear(), date.getMonth(), date.getDate(), h || 0, m || 0, 0, 0);
+    return d;
+  };
+  return {
+    fajr: build(manual.fajr),
+    sunrise: build(manual.sunrise),
+    dhuhr: build(manual.dhuhr),
+    asr: build(manual.asr),
+    maghrib: build(manual.maghrib),
+    isha: build(manual.isha),
+  };
+}
+
+interface ManualTimesLike {
+  fajr: string; sunrise: string; dhuhr: string; asr: string; maghrib: string; isha: string;
+}
+
 export interface NextPrayer {
   name: PrayerName;
   time: Date;

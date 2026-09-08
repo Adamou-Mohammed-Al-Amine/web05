@@ -81,6 +81,14 @@
       <!-- الموقع -->
       <section class="settings-section" data-section="location">
         <div class="row-column">
+          <span class="row-label">اختر ولاية جزائرية مباشرة</span>
+          <select id="fWilaya">
+            <option value="">-- اختر ولاية --</option>
+          </select>
+          <p class="hint">اختيار سريع لأي ولاية من ولايات الجزائر الـ58 — يملأ الإحداثيات والمنطقة الزمنية تلقائيًا.</p>
+        </div>
+
+        <div class="row-column">
           <span class="row-label">استخدم موقعك الحالي تلقائيًا (عبر الإنترنت)</span>
           <div class="search-row">
             <button class="btn btn-primary" id="btnDetectLocation">📍 اكتشف موقعي</button>
@@ -143,6 +151,23 @@
           <label class="row"><span>المغرب</span><input type="number" id="offMaghrib" step="1" /></label>
           <label class="row"><span>العشاء</span><input type="number" id="offIsha" step="1" /></label>
         </details>
+
+        <div class="row-column" style="margin-top: 10px; border-top: 1px solid var(--border); padding-top: 14px;">
+          <label class="row" style="border-bottom: none; padding: 0;">
+            <span>استخدام أوقات صلاة يدوية (بدل الحساب الفلكي)</span>
+            <input type="checkbox" id="fManualTimesEnabled" />
+          </label>
+          <p class="hint">عند التفعيل، تُستخدم الأوقات التي تدخلها هنا كل يوم بدل الحساب التلقائي — مفيد إذا كان عندك جدول ثابت من المسجد.</p>
+        </div>
+
+        <div id="manualTimesFields" hidden>
+          <label class="row"><span>الفجر</span><input type="time" id="manFajr" /></label>
+          <label class="row"><span>الشروق</span><input type="time" id="manSunrise" /></label>
+          <label class="row"><span>الظهر</span><input type="time" id="manDhuhr" /></label>
+          <label class="row"><span>العصر</span><input type="time" id="manAsr" /></label>
+          <label class="row"><span>المغرب</span><input type="time" id="manMaghrib" /></label>
+          <label class="row"><span>العشاء</span><input type="time" id="manIsha" /></label>
+        </div>
       </section>
 
       <!-- الأذان -->

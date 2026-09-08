@@ -174,3 +174,135 @@ html, body {
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+
+/* ---------- Tabs ---------- */
+.main-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+.main-tab {
+  flex: 1;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 150ms var(--ease), color 150ms var(--ease);
+}
+.main-tab[data-active="true"] {
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+}
+
+.tab-panel { display: none; flex-direction: column; gap: 16px; flex: 1; }
+.tab-panel[data-active="true"] { display: flex; }
+
+/* ---------- Alarms ---------- */
+.alarms-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.alarm-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  gap: 10px;
+}
+
+.alarm-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.alarm-name {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.alarm-time {
+  font-size: 20px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.alarm-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+.alarm-toggle {
+  width: 36px; height: 20px;
+  appearance: none;
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.alarm-toggle::before {
+  content: "";
+  position: absolute;
+  top: 2px; right: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 150ms var(--ease);
+}
+.alarm-toggle:checked { background: var(--accent); }
+.alarm-toggle:checked::before { transform: translateX(-16px); }
+
+.alarm-delete {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.alarm-delete:hover { color: #ff8080; }
+
+.alarms-empty {
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  padding: 24px 0;
+}
+
+.add-alarm-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.add-alarm-form input {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 9px 12px;
+  font-size: 13px;
+  font-family: inherit;
+}
+.btn-add-alarm {
+  background: var(--accent);
+  border: none;
+  color: #0c1210;
+  font-weight: 700;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}

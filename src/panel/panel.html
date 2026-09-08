@@ -19,16 +19,35 @@
       <div class="app-clock" id="currentClock">--:--:--</div>
     </header>
 
-    <section class="next-prayer-card">
-      <div class="next-prayer-label">الصلاة القادمة</div>
-      <div class="next-prayer-name" id="nextPrayerName">—</div>
-      <div class="next-prayer-countdown" id="nextPrayerCountdown">--:--:--</div>
-      <div class="next-prayer-progress"><div class="next-prayer-progress-fill" id="progressFill"></div></div>
+    <nav class="main-tabs">
+      <button class="main-tab" data-tab="home" data-active="true">الرئيسية</button>
+      <button class="main-tab" data-tab="alarms">المنبه</button>
+    </nav>
+
+    <!-- الرئيسية -->
+    <section class="tab-panel" data-panel="home" data-active="true">
+      <section class="next-prayer-card">
+        <div class="next-prayer-label">الصلاة القادمة</div>
+        <div class="next-prayer-name" id="nextPrayerName">—</div>
+        <div class="next-prayer-countdown" id="nextPrayerCountdown">--:--:--</div>
+        <div class="next-prayer-progress"><div class="next-prayer-progress-fill" id="progressFill"></div></div>
+      </section>
+
+      <div class="prayers-grid" id="prayersGrid"></div>
+
+      <button class="btn-settings" id="btnOpenSettings">⚙ الإعدادات</button>
     </section>
 
-    <div class="prayers-grid" id="prayersGrid"></div>
+    <!-- المنبه -->
+    <section class="tab-panel" data-panel="alarms">
+      <div class="alarms-list" id="alarmsList"></div>
 
-    <button class="btn-settings" id="btnOpenSettings">⚙ الإعدادات</button>
+      <div class="add-alarm-form">
+        <input type="text" id="newAlarmName" placeholder="اسم المنبه (مثال: موعد الدواء)" />
+        <input type="time" id="newAlarmTime" />
+        <button class="btn-add-alarm" id="btnAddAlarm">+ إضافة منبه</button>
+      </div>
+    </section>
   </div>
 
   <script type="module" src="./panel.ts"></script>

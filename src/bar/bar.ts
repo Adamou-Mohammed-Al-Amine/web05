@@ -1,11 +1,11 @@
 import {
-  calculateDailyTimes,
   DailyPrayerTimes,
   PrayerName,
   findNextPrayer,
 } from "../lib/prayerCalc";
+import { resolveDailyTimes, scheduleKey } from "../lib/scheduleResolver";
 import { PrayerEngine, IqamaConfig, BarState } from "../lib/stateMachine";
-import { getSettings, invalidateSettingsCache, AppSettings } from "../lib/store";
+import { getSettings, invalidateSettingsCache, AppSettings, Alarm } from "../lib/store";
 import { playChime, playAdhanFile, stopAdhan } from "../lib/audio";
 
 // Tauri APIs. Wrapped in try/catch at call sites so this file also degrades
@@ -115,39 +115,29 @@ let engine = new PrayerEngine(
 
 let cachedToday: DailyPrayerTimes | null = null;
 let cachedTomorrow: DailyPrayerTimes | null = null;
-let cachedForDateKey = "";
-let cachedForLocationKey = "";
-
-function dateKey(d: Date) {
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-}
-
-function locationKey(s: AppSettings): string {
-  return `${s.location.latitude},${s.location.longitude},${s.location.timeZoneId},${s.calculationMethod},${s.madhab},${JSON.stringify(s.offsets)}`;
-}
+let cachedForKey = "";
 
 /**
  * Recalculates prayer times only when the calendar day changes, or when
- * location/method/madhab/offsets change — never on every tick. This is the
+ * anything affecting the schedule changes (location/method/madhab/offsets,
+ * or the manual-times override) — never on every tick. This is the
  * perf-critical design from the spec: the countdown ticks every second, but
- * astronomical calculation happens only when something that affects it
- * actually changes.
+ * astronomical calculation happens only when something that actually
+ * changes it.
  */
 function ensureTimesForToday(settings: AppSettings) {
   const now = new Date();
-  const dKey = dateKey(now);
-  const lKey = locationKey(settings);
-  if (dKey === cachedForDateKey && lKey === cachedForLocationKey && cachedToday && cachedTomorrow) {
+  const key = scheduleKey(settings, now);
+  if (key === cachedForKey && cachedToday && cachedTomorrow) {
     return;
   }
 
   const tomorrowDate = new Date(now);
   tomorrowDate.setDate(tomorrowDate.getDate() + 1);
 
-  cachedToday = calculateDailyTimes(now, settings.location, settings.calculationMethod, settings.madhab, settings.offsets);
-  cachedTomorrow = calculateDailyTimes(tomorrowDate, settings.location, settings.calculationMethod, settings.madhab, settings.offsets);
-  cachedForDateKey = dKey;
-  cachedForLocationKey = lKey;
+  cachedToday = resolveDailyTimes(settings, now);
+  cachedTomorrow = resolveDailyTimes(settings, tomorrowDate);
+  cachedForKey = key;
 }
 
 function render(barState: BarState, prayer: PrayerName, secondsRemaining: number, progressPercent: number) {
@@ -196,6 +186,26 @@ function progressToward(today: DailyPrayerTimes, prayer: PrayerName, now: Date):
   return (elapsed / span) * 100;
 }
 
+// Tracks the last date each alarm fired on, so it fires once per day at its
+// configured time rather than every second while the clock matches.
+const lastFiredDateForAlarm = new Map<string, string>();
+
+function checkAlarms(settings: AppSettings, now: Date) {
+  if (engine.isPaused) return;
+
+  const nowHHMM = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  const today = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+
+  for (const alarm of settings.alarms as Alarm[]) {
+    if (!alarm.enabled || alarm.time !== nowHHMM) continue;
+    if (lastFiredDateForAlarm.get(alarm.id) === today) continue;
+    lastFiredDateForAlarm.set(alarm.id, today);
+
+    notify(alarm.name || "منبه", "حان وقت المنبه الذي حددته.");
+    playChime(settings.adhanVolume);
+  }
+}
+
 async function tick() {
   if (!currentSettings) currentSettings = await getSettings();
   ensureTimesForToday(currentSettings);
@@ -205,6 +215,7 @@ async function tick() {
   const state = engine.tick(cachedToday, cachedTomorrow, now);
   const progress = progressToward(cachedToday, state.prayerName, now);
   render(state.barState, state.prayerName, state.secondsRemaining, progress);
+  checkAlarms(currentSettings, now);
 }
 
 el.bar.addEventListener("click", (e) => {
@@ -255,7 +266,7 @@ listen<void>("settings-changed", async () => {
   currentSettings = await getSettings();
   engine.setIqamaConfig(iqamaFromSettings(currentSettings));
   applyAppearance(currentSettings);
-  cachedForLocationKey = ""; // force recompute even if the date didn't change
+  cachedForKey = ""; // force recompute even if the date didn't change
   await tick();
 }).catch(() => {
   /* not running inside Tauri (dev preview) — settings changes won't push, that's fine */

@@ -1,11 +1,29 @@
 import { CalculationMethodId, Location, Madhab, PrayerOffsetsMinutes, ZERO_OFFSETS } from "./prayerCalc";
 import { IqamaConfig, DEFAULT_IQAMA } from "./stateMachine";
 
+export interface ManualPrayerTimes {
+  fajr: string;    // "HH:MM", used every day when manualTimesEnabled is true
+  sunrise: string;
+  dhuhr: string;
+  asr: string;
+  maghrib: string;
+  isha: string;
+}
+
+export interface Alarm {
+  id: string;
+  name: string;
+  time: string; // "HH:MM"
+  enabled: boolean;
+}
+
 export interface AppSettings {
   location: Location;
   calculationMethod: CalculationMethodId;
   madhab: Madhab;
   offsets: PrayerOffsetsMinutes;
+  manualTimesEnabled: boolean; // when true, manualTimes is used instead of astronomical calculation
+  manualTimes: ManualPrayerTimes;
   iqamaEnabled: boolean;
   iqama: IqamaConfig;
   reminderEnabled: boolean;      // 5-minutes-before-Iqama reminder
@@ -24,7 +42,17 @@ export interface AppSettings {
   accentColor: string;
   compactMode: boolean;
   onboardingComplete: boolean;
+  alarms: Alarm[];
 }
+
+const DEFAULT_MANUAL_TIMES: ManualPrayerTimes = {
+  fajr: "05:00",
+  sunrise: "06:30",
+  dhuhr: "12:30",
+  asr: "15:45",
+  maghrib: "18:15",
+  isha: "19:45",
+};
 
 // Sensible defaults so the app is usable before onboarding finishes; real
 // values are overwritten once the user picks a location.
@@ -33,6 +61,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   calculationMethod: "MWL",
   madhab: "SHAFI",
   offsets: ZERO_OFFSETS,
+  manualTimesEnabled: false,
+  manualTimes: DEFAULT_MANUAL_TIMES,
   iqamaEnabled: true,
   iqama: DEFAULT_IQAMA,
   reminderEnabled: true,
@@ -51,6 +81,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   accentColor: "#78AAFF",
   compactMode: false,
   onboardingComplete: false,
+  alarms: [],
 };
 
 const STORE_KEY = "settings";

@@ -1,7 +1,8 @@
-import { calculateDailyTimes, DailyPrayerTimes, findNextPrayer, PrayerName } from "../lib/prayerCalc";
-import { getSettings, invalidateSettingsCache } from "../lib/store";
+import { DailyPrayerTimes, findNextPrayer, PrayerName } from "../lib/prayerCalc";
+import { resolveDailyTimes, scheduleKey } from "../lib/scheduleResolver";
+import { getSettings, saveSettings, invalidateSettingsCache, Alarm } from "../lib/store";
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { listen, emit } from "@tauri-apps/api/event";
 
 const PRAYER_ORDER: PrayerName[] = ["fajr", "sunrise", "dhuhr", "asr", "maghrib", "isha"];
 const PRAYER_LABELS_AR: Record<PrayerName, string> = {
@@ -21,6 +22,10 @@ const el = {
   progressFill: document.getElementById("progressFill")!,
   prayersGrid: document.getElementById("prayersGrid")!,
   btnOpenSettings: document.getElementById("btnOpenSettings") as HTMLButtonElement,
+  alarmsList: document.getElementById("alarmsList")!,
+  newAlarmName: document.getElementById("newAlarmName") as HTMLInputElement,
+  newAlarmTime: document.getElementById("newAlarmTime") as HTMLInputElement,
+  btnAddAlarm: document.getElementById("btnAddAlarm") as HTMLButtonElement,
 };
 
 function formatClock(d: Date): string {
@@ -52,23 +57,30 @@ function formatCountdown(totalSeconds: number): string {
   return `${pad(h)}:${pad(m)}:${pad(sec)}`;
 }
 
+// ---------- Tabs ----------
+document.querySelectorAll<HTMLButtonElement>(".main-tab").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll<HTMLButtonElement>(".main-tab").forEach((t) => (t.dataset.active = "false"));
+    document.querySelectorAll<HTMLElement>(".tab-panel").forEach((p) => (p.dataset.active = "false"));
+    tab.dataset.active = "true";
+    document.querySelector<HTMLElement>(`.tab-panel[data-panel="${tab.dataset.tab}"]`)!.dataset.active = "true";
+  });
+});
+
+// ---------- Prayer schedule ----------
 let cachedToday: DailyPrayerTimes | null = null;
 let cachedTomorrow: DailyPrayerTimes | null = null;
 let cachedForKey = "";
 
-function keyFor(settings: Awaited<ReturnType<typeof getSettings>>, now: Date): string {
-  return `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}:${settings.location.latitude},${settings.location.longitude},${settings.location.timeZoneId},${settings.calculationMethod},${settings.madhab}`;
-}
-
 async function ensureTimes(now: Date) {
   const settings = await getSettings();
-  const key = keyFor(settings, now);
+  const key = scheduleKey(settings, now);
   if (key === cachedForKey && cachedToday && cachedTomorrow) return;
 
   const tomorrowDate = new Date(now);
   tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-  cachedToday = calculateDailyTimes(now, settings.location, settings.calculationMethod, settings.madhab, settings.offsets);
-  cachedTomorrow = calculateDailyTimes(tomorrowDate, settings.location, settings.calculationMethod, settings.madhab, settings.offsets);
+  cachedToday = resolveDailyTimes(settings, now);
+  cachedTomorrow = resolveDailyTimes(settings, tomorrowDate);
   cachedForKey = key;
 }
 
@@ -120,6 +132,86 @@ function progressToward(today: DailyPrayerTimes, prayer: PrayerName, now: Date):
   return ((now.getTime() - prevTime.getTime()) / span) * 100;
 }
 
+// ---------- Alarms ----------
+function renderAlarms(alarms: Alarm[]) {
+  el.alarmsList.innerHTML = "";
+
+  if (alarms.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "alarms-empty";
+    empty.textContent = "لا توجد منبهات بعد — أضف واحدًا تحت.";
+    el.alarmsList.appendChild(empty);
+    return;
+  }
+
+  for (const alarm of alarms) {
+    const card = document.createElement("div");
+    card.className = "alarm-card";
+
+    const info = document.createElement("div");
+    info.className = "alarm-info";
+    const name = document.createElement("div");
+    name.className = "alarm-name";
+    name.textContent = alarm.name || "منبه بلا اسم";
+    const time = document.createElement("div");
+    time.className = "alarm-time";
+    time.textContent = alarm.time;
+    info.append(name, time);
+
+    const controls = document.createElement("div");
+    controls.className = "alarm-controls";
+
+    const toggle = document.createElement("input");
+    toggle.type = "checkbox";
+    toggle.className = "alarm-toggle";
+    toggle.checked = alarm.enabled;
+    toggle.addEventListener("change", async () => {
+      const settings = await getSettings();
+      const updated = settings.alarms.map((a) => (a.id === alarm.id ? { ...a, enabled: toggle.checked } : a));
+      await saveSettings({ alarms: updated });
+      await emit("settings-changed");
+    });
+
+    const del = document.createElement("button");
+    del.className = "alarm-delete";
+    del.textContent = "✕";
+    del.title = "حذف";
+    del.addEventListener("click", async () => {
+      const settings = await getSettings();
+      const updated = settings.alarms.filter((a) => a.id !== alarm.id);
+      await saveSettings({ alarms: updated });
+      await emit("settings-changed");
+      renderAlarms(updated);
+    });
+
+    controls.append(toggle, del);
+    card.append(controls, info);
+    el.alarmsList.appendChild(card);
+  }
+}
+
+el.btnAddAlarm.addEventListener("click", async () => {
+  const name = el.newAlarmName.value.trim();
+  const time = el.newAlarmTime.value;
+  if (!time) return;
+
+  const settings = await getSettings();
+  const newAlarm: Alarm = {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    name: name || "منبه",
+    time,
+    enabled: true,
+  };
+  const updated = [...settings.alarms, newAlarm];
+  await saveSettings({ alarms: updated });
+  await emit("settings-changed");
+
+  el.newAlarmName.value = "";
+  el.newAlarmTime.value = "";
+  renderAlarms(updated);
+});
+
+// ---------- Main tick ----------
 async function tick() {
   const now = new Date();
   await ensureTimes(now);
@@ -149,8 +241,16 @@ el.btnOpenSettings.addEventListener("click", async () => {
 listen("settings-changed", async () => {
   invalidateSettingsCache();
   cachedForKey = ""; // force recompute
+  const settings = await getSettings();
+  renderAlarms(settings.alarms);
   await tick();
 }).catch(() => {});
 
-tick();
-setInterval(tick, 1000);
+async function init() {
+  const settings = await getSettings();
+  renderAlarms(settings.alarms);
+  await tick();
+  setInterval(tick, 1000);
+}
+
+init();

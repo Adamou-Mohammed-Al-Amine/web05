@@ -1,5 +1,6 @@
-import { getSettings, saveSettings, invalidateSettingsCache, AppSettings } from "../lib/store";
+import { getSettings, saveSettings, invalidateSettingsCache, AppSettings, ManualPrayerTimes } from "../lib/store";
 import { searchCities, cityResultToLocation, formatCityLabel, detectCurrentLocation, CitySearchResult } from "../lib/cityLookup";
+import { ALGERIA_WILAYAS, wilayaToLocation } from "../lib/algeria";
 import { playAdhanFile, stopAdhan } from "../lib/audio";
 import { PrayerName } from "../lib/prayerCalc";
 
@@ -41,6 +42,7 @@ const f = {
   btnDetectLocation: document.getElementById("btnDetectLocation") as HTMLButtonElement,
   detectLocationHint: document.getElementById("detectLocationHint") as HTMLParagraphElement,
   cityResults: document.getElementById("cityResults") as HTMLDivElement,
+  wilaya: document.getElementById("fWilaya") as HTMLSelectElement,
   citySearchHint: document.getElementById("citySearchHint") as HTMLParagraphElement,
   latitude: document.getElementById("fLatitude") as HTMLInputElement,
   longitude: document.getElementById("fLongitude") as HTMLInputElement,
@@ -54,6 +56,15 @@ const f = {
   offAsr: document.getElementById("offAsr") as HTMLInputElement,
   offMaghrib: document.getElementById("offMaghrib") as HTMLInputElement,
   offIsha: document.getElementById("offIsha") as HTMLInputElement,
+
+  manualTimesEnabled: document.getElementById("fManualTimesEnabled") as HTMLInputElement,
+  manualTimesFields: document.getElementById("manualTimesFields") as HTMLDivElement,
+  manFajr: document.getElementById("manFajr") as HTMLInputElement,
+  manSunrise: document.getElementById("manSunrise") as HTMLInputElement,
+  manDhuhr: document.getElementById("manDhuhr") as HTMLInputElement,
+  manAsr: document.getElementById("manAsr") as HTMLInputElement,
+  manMaghrib: document.getElementById("manMaghrib") as HTMLInputElement,
+  manIsha: document.getElementById("manIsha") as HTMLInputElement,
 
   adhanEnabled: document.getElementById("fAdhanEnabled") as HTMLInputElement,
   adhanFileLabel: document.getElementById("adhanFileLabel") as HTMLParagraphElement,
@@ -197,6 +208,27 @@ function populateLocation(s: AppSettings) {
   f.timeZone.value = s.location.timeZoneId;
 }
 
+function populateWilayaOptions() {
+  for (const w of ALGERIA_WILAYAS) {
+    const opt = document.createElement("option");
+    opt.value = String(w.code);
+    opt.textContent = w.nameAr;
+    f.wilaya.appendChild(opt);
+  }
+}
+
+f.wilaya.addEventListener("change", async () => {
+  const code = Number(f.wilaya.value);
+  const wilaya = ALGERIA_WILAYAS.find((w) => w.code === code);
+  if (!wilaya) return;
+
+  const location = wilayaToLocation(wilaya);
+  f.latitude.value = String(location.latitude);
+  f.longitude.value = String(location.longitude);
+  f.timeZone.value = location.timeZoneId;
+  await update({ location });
+});
+
 let citySearchToken = 0;
 f.btnCitySearch.addEventListener("click", () => runCitySearch());
 f.citySearch.addEventListener("keydown", (e) => {
@@ -318,6 +350,38 @@ function saveOffsets() {
   input.addEventListener("change", saveOffsets)
 );
 
+// ---------- Manual prayer times ----------
+function populateManualTimes(s: AppSettings) {
+  f.manualTimesEnabled.checked = s.manualTimesEnabled;
+  f.manualTimesFields.hidden = !s.manualTimesEnabled;
+  f.manFajr.value = s.manualTimes.fajr;
+  f.manSunrise.value = s.manualTimes.sunrise;
+  f.manDhuhr.value = s.manualTimes.dhuhr;
+  f.manAsr.value = s.manualTimes.asr;
+  f.manMaghrib.value = s.manualTimes.maghrib;
+  f.manIsha.value = s.manualTimes.isha;
+}
+
+f.manualTimesEnabled.addEventListener("change", async () => {
+  f.manualTimesFields.hidden = !f.manualTimesEnabled.checked;
+  await update({ manualTimesEnabled: f.manualTimesEnabled.checked });
+});
+
+function saveManualTimes() {
+  const manual: ManualPrayerTimes = {
+    fajr: f.manFajr.value || "05:00",
+    sunrise: f.manSunrise.value || "06:30",
+    dhuhr: f.manDhuhr.value || "12:30",
+    asr: f.manAsr.value || "15:45",
+    maghrib: f.manMaghrib.value || "18:15",
+    isha: f.manIsha.value || "19:45",
+  };
+  update({ manualTimes: manual });
+}
+[f.manFajr, f.manSunrise, f.manDhuhr, f.manAsr, f.manMaghrib, f.manIsha].forEach((input) =>
+  input.addEventListener("change", saveManualTimes)
+);
+
 // ---------- Adhan ----------
 function populateAdhan(s: AppSettings) {
   f.adhanEnabled.checked = s.adhanEnabled;
@@ -419,8 +483,10 @@ async function init() {
   settings = await getSettings();
 
   populateGeneral(settings);
+  populateWilayaOptions();
   populateLocation(settings);
   populateCalculation(settings);
+  populateManualTimes(settings);
   populateAdhan(settings);
   populateIqama(settings);
   populateNotifications(settings);
