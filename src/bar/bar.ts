@@ -20,9 +20,10 @@ const el = {
   prayerName: document.getElementById("barPrayerName")!,
   countdown: document.getElementById("barCountdown")!,
   progress: document.getElementById("barProgress")!,
-  controls: document.getElementById("barControls")!,
-  btnStop: document.getElementById("btnStop") as HTMLButtonElement,
-  btnResume: document.getElementById("btnResume") as HTMLButtonElement,
+  announce: document.getElementById("barAnnounce")!,
+  announceIcon: document.getElementById("announceIcon")!,
+  announceText: document.getElementById("announceText")!,
+  btnAcknowledge: document.getElementById("btnAcknowledge") as HTMLButtonElement,
 };
 
 const PRAYER_LABELS: Record<PrayerName, string> = {
@@ -61,8 +62,40 @@ async function notify(title: string, body: string) {
   await safeInvoke("show_notification", { title, body });
 }
 
+/**
+ * The big expanded announcement (Adhan for a prayer, or a custom alarm).
+ * Unlike the old timer-based "adhan" bar state, this does NOT auto-collapse
+ * — it stays expanded until the user clicks the acknowledge button, per the
+ * requested "big banner + OK button, dismissed manually" behavior. The
+ * underlying PrayerEngine keeps ticking normally in the background while
+ * this is showing, so by the time the user dismisses it, the countdown
+ * underneath has already naturally moved into the Iqama phase.
+ */
+let announcement: { icon: string; text: string } | null = null;
+
+function showAnnouncement(icon: string, text: string) {
+  announcement = { icon, text };
+  el.announceIcon.textContent = icon;
+  el.announceText.textContent = text;
+  el.bar.dataset.announce = "true";
+}
+
+function dismissAnnouncement() {
+  announcement = null;
+  el.bar.dataset.announce = "false";
+}
+
+el.btnAcknowledge.addEventListener("click", (e) => {
+  e.stopPropagation();
+  stopAdhan();
+  engine.silenceCurrent();
+  dismissAnnouncement();
+  tick();
+});
+
 async function onEnterAdhan(prayer: PrayerName) {
   await notify(PRAYER_LABELS[prayer], `حان الآن وقت صلاة ${PRAYER_LABELS[prayer]}.`);
+  showAnnouncement("🕌", `أذان ${PRAYER_LABELS[prayer]}`);
 
   if (!currentSettings?.adhanEnabled) return;
   const path = currentSettings.adhanSoundPath;
@@ -76,10 +109,22 @@ async function onEnterAdhan(prayer: PrayerName) {
   }
 }
 
+// Fired once when the 5-min-before-Iqama window begins: a brief grow pulse
+// plus the alert chime, then it auto-settles back into the normal (smaller)
+// Iqama countdown display — no button needed, it's a heads-up, not
+// something requiring acknowledgment like the Adhan announcement is.
+function triggerGrowPulse() {
+  el.bar.dataset.grow = "true";
+  setTimeout(() => {
+    el.bar.dataset.grow = "false";
+  }, 750);
+}
+
 async function onEnterIqamaWarning(prayer: PrayerName) {
   if (!currentSettings?.reminderEnabled) return;
   await notify(`إقامة ${PRAYER_LABELS[prayer]}`, "ستبدأ الإقامة بعد 5 دقائق.");
   playChime(currentSettings.adhanVolume);
+  triggerGrowPulse();
 }
 
 async function onEnterIqamaDue(_prayer: PrayerName) {
@@ -143,16 +188,17 @@ function ensureTimesForToday(settings: AppSettings) {
 function render(barState: BarState, prayer: PrayerName, secondsRemaining: number, progressPercent: number) {
   el.bar.dataset.state = barState;
 
-  const showControls = barState === "adhan" || barState === "iqama" || barState === "iqamaWarning";
-  el.controls.hidden = !showControls;
+  // The announcement overlay takes over visually (CSS hides .bar-content)
+  // while it's showing — the normal state text underneath still updates,
+  // so it's correct the instant the user dismisses.
+  if (announcement) {
+    el.progress.style.setProperty("--progress", `${Math.min(100, Math.max(0, progressPercent))}%`);
+    return;
+  }
 
   el.prayerName.textContent = PRAYER_LABELS[prayer];
 
   switch (barState) {
-    case "adhan":
-      el.icon.textContent = "🕌";
-      el.countdown.textContent = "حان وقت الصلاة";
-      break;
     case "iqama":
     case "iqamaWarning":
       el.icon.textContent = "🔴";
@@ -163,7 +209,7 @@ function render(barState: BarState, prayer: PrayerName, secondsRemaining: number
       el.prayerName.textContent = "الإشعارات متوقفة مؤقتًا";
       el.countdown.textContent = "";
       break;
-    default: // normal | close
+    default: // normal | close | adhan (adhan is covered by the announcement overlay above)
       el.icon.textContent = "🕌";
       el.countdown.textContent = formatCountdown(secondsRemaining);
   }
@@ -202,6 +248,7 @@ function checkAlarms(settings: AppSettings, now: Date) {
     lastFiredDateForAlarm.set(alarm.id, today);
 
     notify(alarm.name || "منبه", "حان وقت المنبه الذي حددته.");
+    showAnnouncement("⏰", alarm.name || "منبه");
     playChime(settings.adhanVolume);
   }
 }
@@ -218,35 +265,9 @@ async function tick() {
   checkAlarms(currentSettings, now);
 }
 
-el.bar.addEventListener("click", (e) => {
-  if ((e.target as HTMLElement).closest(".bar-controls")) return;
+el.bar.addEventListener("click", () => {
+  if (announcement) return; // announcement is dismissed only via its own button
   safeInvoke("toggle_panel_window");
-});
-
-el.btnStop.addEventListener("click", (e) => {
-  e.stopPropagation();
-  engine.silenceCurrent();
-  stopAdhan();
-  el.btnStop.hidden = true;
-  el.btnResume.hidden = false;
-});
-
-el.btnResume.addEventListener("click", async (e) => {
-  e.stopPropagation();
-  engine.unsilenceCurrent();
-  el.btnResume.hidden = true;
-  el.btnStop.hidden = false;
-  // Resuming re-plays the Adhan if we're still within the Adhan moment;
-  // if we've moved into the Iqama countdown there's nothing to resume
-  // audio-wise, which matches "Stop silences the current sound" rather
-  // than "Stop cancels the whole prayer's audio forever".
-  if (el.bar.dataset.state === "adhan" && currentSettings?.adhanEnabled && currentSettings.adhanSoundPath) {
-    try {
-      await playAdhanFile(convertFileSrc(currentSettings.adhanSoundPath), currentSettings.adhanVolume);
-    } catch {
-      /* fail soft */
-    }
-  }
 });
 
 // Re-sync immediately when the window becomes visible again — a lightweight
@@ -307,6 +328,8 @@ async function init() {
   currentSettings = await getSettings();
   engine.setIqamaConfig(iqamaFromSettings(currentSettings));
   applyAppearance(currentSettings);
+  el.bar.dataset.announce = "false";
+  el.bar.dataset.grow = "false";
   await tick();
   setInterval(tick, 1000);
 }
