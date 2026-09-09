@@ -19,6 +19,8 @@ export interface Alarm {
 
 export interface AppSettings {
   location: Location;
+  selectedWilayaCode: number | null;
+  selectedCommune: string | null;
   calculationMethod: CalculationMethodId;
   madhab: Madhab;
   offsets: PrayerOffsetsMinutes;
@@ -37,10 +39,6 @@ export interface AppSettings {
   customPosition: { x: number; y: number } | null;
   monitorName: string | null; // null = primary monitor
   startWithWindows: boolean;  // independent of showBar and alwaysOnTop
-  glassOpacity: number;   // 0-1, maps to --glass-bg alpha
-  blurIntensity: number;  // px
-  accentColor: string;
-  compactMode: boolean;
   onboardingComplete: boolean;
   alarms: Alarm[];
 }
@@ -57,7 +55,9 @@ const DEFAULT_MANUAL_TIMES: ManualPrayerTimes = {
 // Sensible defaults so the app is usable before onboarding finishes; real
 // values are overwritten once the user picks a location.
 const DEFAULT_SETTINGS: AppSettings = {
-  location: { latitude: 21.4225, longitude: 39.8262, timeZoneId: "Asia/Riyadh" }, // Makkah, placeholder until onboarding
+  location: { latitude: 36.75, longitude: 3.06, timeZoneId: "Africa/Algiers" }, // الجزائر العاصمة, placeholder until onboarding
+  selectedWilayaCode: 16,
+  selectedCommune: "الجزائر الوسطى",
   calculationMethod: "MWL",
   madhab: "SHAFI",
   offsets: ZERO_OFFSETS,
@@ -76,10 +76,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   customPosition: null,
   monitorName: null, // primary monitor
   startWithWindows: true,
-  glassOpacity: 0.55,
-  blurIntensity: 26,
-  accentColor: "#78AAFF",
-  compactMode: false,
   onboardingComplete: false,
   alarms: [],
 };

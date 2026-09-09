@@ -42,7 +42,7 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
         &[&pause_30, &pause_60, &pause_until_next, &pause_sep, &pause_resume],
     )?;
 
-    let todays_prayers = MenuItem::with_id(app, "todays_prayers", "Open Prayer Bar", true, None::<&str>)?;
+    let open_main_item = MenuItem::with_id(app, "open_main", "Open Prayer Bar", true, None::<&str>)?;
     let settings_item = MenuItem::with_id(app, "settings", "Settings", true, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
     let separator = PredefinedMenuItem::separator(app)?;
@@ -53,7 +53,7 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
             &show_hide,
             &always_on_top,
             &pause_submenu,
-            &todays_prayers,
+            &open_main_item,
             &separator,
             &settings_item,
             &separator,
@@ -118,22 +118,24 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
             "pause_resume" => {
                 let _ = app.emit_to("bar", "pause-resume", ());
             }
-            "todays_prayers" => {
-                if app.get_webview_window("panel").is_none() {
-                    windows::create_panel_window(app).ok();
+            "open_main" => {
+                if app.get_webview_window("main").is_none() {
+                    windows::create_main_window(app).ok();
                 }
-                if let Some(panel) = app.get_webview_window("panel") {
-                    panel.show().ok();
-                    panel.set_focus().ok();
+                if let Some(main) = app.get_webview_window("main") {
+                    main.show().ok();
+                    main.set_focus().ok();
+                    let _ = app.emit_to("main", "switch-tab", "home");
                 }
             }
             "settings" => {
-                if app.get_webview_window("settings").is_none() {
-                    windows::create_settings_window(app).ok();
+                if app.get_webview_window("main").is_none() {
+                    windows::create_main_window(app).ok();
                 }
-                if let Some(win) = app.get_webview_window("settings") {
-                    win.show().ok();
-                    win.set_focus().ok();
+                if let Some(main) = app.get_webview_window("main") {
+                    main.show().ok();
+                    main.set_focus().ok();
+                    let _ = app.emit_to("main", "switch-tab", "general");
                 }
             }
             "quit" => {

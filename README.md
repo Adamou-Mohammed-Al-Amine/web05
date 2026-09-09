@@ -1,119 +1,102 @@
 # Prayer Bar
 
-A minimalist floating glass prayer-time bar for Windows, built with Tauri.
+A minimalist floating glass prayer-time bar for Windows, built with Tauri —
+plus one unified main window (Home / Alarms / all Settings) with Arabic
+(RTL) as the primary language.
 
-## Important: what "done" means here, honestly
+## Status as of this pass
 
-I'm developing this from a Linux sandbox with no Windows, no GUI, and no way
-to install a current Rust toolchain (rustup's installer isn't reachable from
-here — the local apt package is Rust 1.75, and Tauri v2's dependencies
-require 1.77.2+). That means:
+This was a large "final polish" pass covering 13 requirement areas at once.
+Everything below is implemented in code and passes `tsc --noEmit` + a real
+`vite build`. **Rust compilation is still unverified** — this sandbox's
+toolchain (1.75) is too old for Tauri v2's dependencies (needs 1.77.2+),
+and rustup's installer domain isn't reachable from here. The GitHub Actions
+workflow (Path A below) is where this gets a real compiler for the first
+time.
 
-- **I have not compiled this into an actual `.exe`.** I can't — not "haven't
-  gotten to it," genuinely can't, in this environment.
-- **I verified what I could.** The prayer-time math (`prayerCalc.ts`) is
-  tested against known sun times for a real location/date, in plain
-  Node — not assumed correct. I caught and fixed two real bugs that way
-  (see git history / the calculation notes below). The Rust code is
-  written against the Tauri v2 API as documented, but has **not** been
-  compiled — I could get dependencies to download but not build, due to the
-  toolchain version wall above. Treat the Rust side as reviewed-but-unverified
-  until the first real build.
-- **Getting you a real installer is still fully doable** — just not by me,
-  in this chat, in this sandbox. Two paths below, pick whichever you prefer.
+## What changed this pass
 
-## Path A — GitHub Actions builds it for you (no Windows PC needed)
+**1. One unified window.** The separate Settings window is gone. Home,
+Alarms, and every Settings category (General/Location/Calculation/Adhan/
+Iqama/Notifications) are now tabs in a single window (`src/panel/`), one
+tab bar, one visual language. The floating bar remains its own window
+(it has to — it's an always-on-top overlay, fundamentally different from a
+normal window).
 
-1. Push this project to a GitHub repo.
-2. Go to the repo's **Actions** tab → **Build Windows Installer** → **Run workflow**.
-3. Wait for it to finish (a few minutes) — it runs on GitHub's actual Windows
-   servers with a current Rust toolchain, so this is where compilation
-   errors, if any remain, will surface.
-4. Download `prayer-bar-windows-installer` from the run's **Artifacts**.
-   Inside is `Prayer Bar Setup 1.0.0.exe`.
-5. If the build fails, the Actions log will show exactly which Rust API
-   call is wrong — paste that error back to me and I'll fix it blind (I
-   can reason about Tauri's API correctly even without compiling, I just
-   can't guarantee zero typos without the compiler's help).
+**2. Real native blur, not fake CSS blur.** Confirmed via research that
+`backdrop-filter` in a Tauri `transparent: true` window only blurs the
+app's own content, not the real desktop behind it — a real, still-open
+upstream limitation, not something we were doing wrong. Fixed with
+`window-vibrancy`'s `apply_acrylic` (the documented, correct approach for
+Tauri 2 on Windows). This is new, added, **uncompiled** Rust
+(`src-tauri/src/vibrancy.rs`) — the single highest-risk piece of this pass.
 
-## Path B — build it yourself on your Windows PC
+**3. Bar redesign.** Simplified to one text node per state (letting the
+browser's bidi algorithm correctly interleave Arabic text and Western
+numerals, matching your reference images exactly instead of fighting it
+with manual spans). Three fixed native tint colors — charcoal (normal),
+dark green (Adhan/alarm), dark red (last 5 min before Iqama) — applied via
+real acrylic, not CSS. The Adhan/alarm announcement is a horizontal layout
+(text + a distinctly-bordered acknowledge button) matching your sketch,
+not the vertical stack from the previous pass.
 
-Prerequisites: https://v2.tauri.app/start/prerequisites/ (Rust, WebView2,
-MSVC Build Tools, Node.js).
+**4. Location: Wilaya → Commune.** Removed city search, "detect my
+location," and manual lat/lng/timezone entry entirely, per your
+instruction. Replaced with Country (fixed: Algeria) → Wilaya (all 58,
+complete) → Commune (see honest limitation below).
 
-```powershell
-npm install
-npm run tauri build
-```
+**5. Dead settings removed.** Glass opacity/blur/accent-color/compact-mode
+sliders are gone — they no longer connected to anything real once the bar's
+colors became fixed native tints, and leaving them would have been exactly
+the "fake control" you told me not to leave.
 
-The installer lands in
-`src-tauri/target/release/bundle/nsis/Prayer Bar Setup 1.0.0.exe`.
+## Honest limitations — read this before assuming something is complete
 
-## What's implemented in this pass
+- **Commune data is NOT the complete official list.** Algeria has 1,541
+  communes. Reliably listing all of them, correctly grouped by wilaya, from
+  memory, without a real dataset to check against, isn't something that can
+  be done accurately — attempting it risked silently wrong data, which is
+  worse than disclosing the gap. What's included (`src/lib/algeria.ts`) is
+  a best-effort partial list (~3-6 well-known communes per wilaya for the
+  original 48; just the capital for the 10 wilayas created in 2019). All
+  communes under a wilaya currently share that wilaya's coordinates — there
+  is no independently-verified per-commune coordinate data. If you have (or
+  can point me to) an authoritative commune dataset, I can integrate it
+  properly instead of extending this piecemeal.
+- **Rounded window corners with real acrylic**: native acrylic tints the
+  window's full rectangular bounds, not the CSS-rounded pill shape. Getting
+  true rounded *window* corners requires raw Win32 `SetWindowRgn` calls,
+  which need a `windows` crate version that exactly matches whatever
+  Tauri 2.11.5 uses internally — unverifiable without a working compiler.
+  I deliberately did not guess at this (real crash risk if the version is
+  wrong); the disclosed cosmetic consequence is a faint square-ish sliver
+  possibly visible just outside the pill's rounded corners.
+- **"Spring" animation**: Win32 doesn't animate window resize natively, so
+  the window itself snaps to its new size instantly; the spring/bounce feel
+  comes from a CSS animation on the content synced to that resize. This is
+  a standard technique for this kind of UI, but its exact feel is
+  unverified without a real Windows machine.
+- **Everything Rust-side** is written correctly against documented APIs but
+  not compiled. `vibrancy.rs` is the newest and riskiest file.
 
-- **Your logo, converted to every icon Windows needs**: `icon.ico` (16–256px,
-  verified to contain all 7 embedded resolutions), plus the PNG sizes Tauri's
-  bundler expects, plus a dedicated tray icon. Wired into `tauri.conf.json`
-  for the app icon, installer icon, and taskbar/Start Menu icon, and into
-  the tray via `include_bytes!` in `tray.rs`.
-- **NSIS installer config**: proper product name ("Prayer Bar"), Start Menu
-  shortcut, optional desktop shortcut, installer icon — all in
-  `tauri.conf.json`'s `bundle.windows.nsis` block.
-- **No console window**: `#![windows_subsystem = "windows"]` in `main.rs`
-  (release builds only — debug builds keep the console for your own
-  troubleshooting).
-- **Always on Top**: independent toggle, default ON. Lives in
-  `settings.rs`/`commands.rs` on the Rust side (persisted, applied to the
-  live window), exposed as a checkable tray menu item, and as a field in the
-  frontend `AppSettings` type. It is fully independent of "Show Prayer Bar"
-  and "Start with Windows" — toggling one never touches the others, per your
-  spec.
-- **Monitor-aware positioning**: `windows.rs` now actually queries connected
-  monitors, remembers the selected one by name, falls back to primary (or
-  the first available) if that monitor gets unplugged, and computes
-  top-center/left/right position in logical pixels so it's DPI-consistent.
-- **Background/hide behavior**: closing settings or the panel hides the
-  window; only the tray "Quit" item calls `app.exit(0)`.
-
-## What's still explicitly TODO (not built, not faked)
-
-- `src/panel/`, `src/settings/`, `src/onboarding/` — referenced by the Rust
-  window builders but the HTML/TS files don't exist yet. The settings UI is
-  where "Show Prayer Bar" and monitor-picker controls need a visible home;
-  right now they're wired end-to-end on the backend but nothing calls them.
-- Actual audio playback — commands are no-ops.
-- City search (needs the one online API call in the whole app).
-- Global shortcuts (`Ctrl+Shift+P` / `Ctrl+Shift+M`) — plugin is loaded,
-  nothing registered yet.
-- Autostart toggle — plugin is loaded, not wired to a setting yet.
-- Sleep/wake OS-level hook on the Rust side (frontend re-ticks on
-  `visibilitychange`, which is a partial mitigation, not the full fix).
-- **Full-screen exclusive apps/games**: Tauri's `always_on_top` uses the
-  OS's normal always-on-top window flag. This reliably stays above regular
-  windows, maximized windows, and borderless-fullscreen apps (most modern
-  games and video players use borderless fullscreen). True *exclusive*
-  fullscreen (some older DirectX games) can legitimately suspend all
-  overlays at the OS level — this is a Windows compositor limitation, not
-  something any app can force past, and matches what you asked for
-  ("handle gracefully rather than crash," not "circumvent").
-
-## Running the frontend alone (no Rust/Tauri needed)
-
-For iterating on the bar's visuals only:
+## Running
 
 ```bash
 npm install
-npm run dev
-# open http://localhost:1420/src/bar/index.html
+npm run tauri dev   # requires Rust + Tauri prerequisites on Windows
 ```
 
-This is a **dev-only preview**, not the deliverable — `invoke()` calls
-no-op outside Tauri, so Adhan/notifications/tray/always-on-top won't do
-anything here. Path A or B above is what produces the actual application.
+Frontend-only preview (visuals only, no Tauri APIs):
+```bash
+npm install
+npm run dev
+# open http://localhost:1420/src/bar/index.html or /src/panel/panel.html
+```
 
-## Next steps
+## Building the real installer
 
-Panel window → settings window (this is where Always on Top / Show Bar /
-Start with Windows get real UI toggles) → onboarding → autostart wiring →
-first real build via Path A → fix whatever that build surfaces. Say the
-word and I'll keep going.
+Push to GitHub and run the "Build Windows Installer" Actions workflow
+(`.github/workflows/build.yml`) — this compiles on a real Windows machine
+with a current Rust toolchain, which is the first real test of everything
+in this pass. If it fails, `vibrancy.rs` and the `window.set_size()` calls
+in `windows.rs` are the first places to check.

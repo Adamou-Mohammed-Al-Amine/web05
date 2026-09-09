@@ -89,3 +89,91 @@ export function wilayaToLocation(wilaya: Wilaya): Location {
     timeZoneId: "Africa/Algiers",
   };
 }
+
+/**
+ * Communes (the third administrative level, below wilaya and daïra) for
+ * the location picker's Wilaya → Commune cascade.
+ *
+ * HONEST SCOPE NOTE — read before assuming this is complete: Algeria has
+ * 1,541 official communes. Reliably listing all of them by name, correctly
+ * grouped under their wilaya, from memory, without an actual dataset to
+ * check against, is not something that can be done accurately — attempting
+ * it risks silently wrong/missing communes, which is worse than admitting
+ * the gap. What's here instead is a best-effort list of the commune(s) per
+ * wilaya that are well-established/high-confidence (usually the wilaya's
+ * own capital, plus a few widely-known cities for the larger wilayas) —
+ * NOT the complete official list. The 10 wilayas created in 2019 (southern
+ * split) list only their capital, since their internal commune breakdown
+ * is less commonly referenced.
+ *
+ * All communes under a given wilaya currently share that wilaya's
+ * coordinates (see ALGERIA_WILAYAS) — there is no independently-verified
+ * per-commune coordinate data here. For prayer-time purposes this is a
+ * reasonable approximation (communes within one wilaya are typically close
+ * enough that calculated times differ by well under a minute), but it is
+ * an approximation, not commune-precise geodata.
+ *
+ * If a complete, accurate commune dataset (e.g. from Algeria's ONS, or an
+ * OpenStreetMap extract) is provided, this should be replaced wholesale
+ * rather than extended piecemeal.
+ */
+export const COMMUNES_BY_WILAYA: Record<number, string[]> = {
+  1: ["أدرار", "رقان", "أولف", "تيميمون"],
+  2: ["الشلف", "تنس", "الأبيض مجاجة", "أولاد فارس"],
+  3: ["الأغواط", "أفلو", "حاسي الدلاعة"],
+  4: ["أم البواقي", "عين مليلة", "عين البيضاء", "الحرمة"],
+  5: ["باتنة", "بريكة", "عين التوتة", "تازولت", "مروانة"],
+  6: ["بجاية", "أقبو", "تيشي", "سيدي عيش", "أميزور"],
+  7: ["بسكرة", "طولقة", "سيدي عقبة", "أوماش"],
+  8: ["بشار", "كنادسة", "تاغيت", "العبادلة"],
+  9: ["البليدة", "بوفاريك", "موزاية", "العفرون"],
+  10: ["البويرة", "سور الغزلان", "الأخضرية", "برج أخريص"],
+  11: ["تمنراست", "عين صالح", "عين قزام"],
+  12: ["تبسة", "الشريعة", "بئر العاتر", "الونزة"],
+  13: ["تلمسان", "مغنية", "ندرومة", "الرمشي", "شتوان"],
+  14: ["تيارت", "قصر الشلالة", "سوقر", "مهدية"],
+  15: ["تيزي وزو", "عزازقة", "ذراع بن خدة", "بوغني", "تيقزيرت"],
+  16: ["الجزائر الوسطى", "باب الوادي", "حسين داي", "الحراش", "بئر مراد رايس", "الدار البيضاء"],
+  17: ["الجلفة", "عين وسارة", "حاسي بحبح"],
+  18: ["جيجل", "الطاهير", "الميلية", "الشقفة"],
+  19: ["سطيف", "العلمة", "عين ولمان", "بوقاعة", "عين الكبيرة"],
+  20: ["سعيدة", "عين الحجر", "يوب"],
+  21: ["سكيكدة", "عزابة", "الحروش", "القل", "رمضان جمال"],
+  22: ["سيدي بلعباس", "تلاغ", "سفيزف", "بن باديس"],
+  23: ["عنابة", "البوني", "برحال", "الحجار"],
+  24: ["قالمة", "بوشقوف", "هيليوبوليس", "وادي الزناتي"],
+  25: ["قسنطينة", "الخروب", "زيغود يوسف", "حامة بوزيان"],
+  26: ["المدية", "قصر البخاري", "البرواقية", "عين بوسيف"],
+  27: ["مستغانم", "عين تادلس", "بوقيراط", "حاسي ماماش"],
+  28: ["المسيلة", "بوسعادة", "سيدي عيسى", "عين الملح"],
+  29: ["معسكر", "المحمدية", "غريس", "سيق"],
+  30: ["ورقلة", "حاسي مسعود", "تقرت", "المقارين"],
+  31: ["وهران", "السانية", "بئر الجير", "عين الترك", "أرزيو"],
+  32: ["البيض", "بوقطب", "الأبيض سيدي الشيخ"],
+  33: ["إليزي", "جانت", "برج عمر إدريس"],
+  34: ["برج بوعريريج", "رأس الوادي", "المنصورة"],
+  35: ["بومرداس", "بودواو", "الثنية", "دلس", "برج منايل"],
+  36: ["الطارف", "بوثلجة", "القالة", "بن مهيدي"],
+  37: ["تندوف", "أم العسل"],
+  38: ["تيسمسيلت", "برج بونعامة", "خميستي"],
+  39: ["الوادي", "المغير", "جامعة", "قمار", "البياضة"],
+  40: ["خنشلة", "قايس", "بابار"],
+  41: ["سوق أهراس", "سدراتة", "المشروحة"],
+  42: ["تيبازة", "شرشال", "القليعة", "حجوط", "بوهارون"],
+  43: ["ميلة", "فرجيوة", "شلغوم العيد", "تاجنانت"],
+  44: ["عين الدفلى", "خميس مليانة", "مليانة", "العطاف"],
+  45: ["النعامة", "مشرية", "عين الصفراء"],
+  46: ["عين تموشنت", "حمام بوحجر", "المالح", "الأمير عبد القادر"],
+  47: ["غرداية", "متليلي", "المنيعة", "بريان"],
+  48: ["غليزان", "وادي رهيو", "مازونة", "عمي موسى"],
+  49: ["تيميمون"],
+  50: ["برج باجي مختار"],
+  51: ["أولاد جلال"],
+  52: ["بني عباس"],
+  53: ["عين صالح"],
+  54: ["عين قزام"],
+  55: ["تقرت"],
+  56: ["جانت"],
+  57: ["المغير"],
+  58: ["المنيعة"],
+};

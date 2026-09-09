@@ -1,257 +1,170 @@
-body {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  height: 100vh;
-  padding-top: 8px;
+:root {
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-standard: cubic-bezier(0.22, 1, 0.36, 1);
+  --text-primary: rgba(255, 255, 255, 0.95);
+  --text-secondary: rgba(255, 255, 255, 0.65);
+  --border-normal: rgba(255, 255, 255, 0.14);
+  --border-adhan: rgba(140, 255, 190, 0.35);
+  --border-warning: rgba(255, 140, 130, 0.35);
+  --accent-adhan: #6fe3a5;
+  --accent-warning: #ff8a80;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  /* Must stay transparent — the real blur/tint comes from native Windows
+     acrylic (window-vibrancy, applied from Rust), not CSS. CSS
+     backdrop-filter in a Tauri transparent window only blurs the app's own
+     content, not the real desktop — a confirmed, still-open upstream
+     limitation, not a mistake on our part. See src-tauri/src/vibrancy.rs. */
+  background: transparent;
+  overflow: hidden;
+  font-family: "Segoe UI", Tahoma, "Segoe UI Variable", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
 }
 
 .bar {
   position: relative;
-  display: inline-flex;
+  width: 100%;
+  height: 100%;
+  display: flex;
   align-items: center;
-  min-width: 220px;
-  max-width: 420px;
-  padding: 9px 18px;
-  border-radius: var(--radius-pill);
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(150%);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow);
+  justify-content: center;
+  border-radius: 28px;
+  /* A faint white wash on top of the native acrylic tint — gives the glass
+     a subtle "frosted highlight" without fighting the acrylic color, which
+     already carries the real charcoal/green/red tone from Rust. */
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid var(--border-normal);
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   cursor: pointer;
   overflow: hidden;
-  transition:
-    padding var(--dur-medium) var(--ease-standard),
-    min-width var(--dur-medium) var(--ease-standard),
-    border-color var(--dur-medium) var(--ease-standard),
-    box-shadow var(--dur-medium) var(--ease-standard),
-    transform var(--dur-fast) var(--ease-standard);
+  transition: border-color 260ms var(--ease-standard);
 }
 
-.bar:hover {
-  border-color: var(--glass-border-strong);
-}
-
-.bar:active {
-  transform: scale(0.985);
-}
-
-/* Subtle progress line toward next prayer — a hairline, not a UI element */
-.bar-progress {
+/* ---------- Very subtle grain/noise texture (foreground effect — works
+   independently of whether native/CSS blur is active) ---------- */
+.bar-noise {
   position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 5px;
-  height: 2px;
-  border-radius: 2px;
-  background: rgba(255, 255, 255, 0.08);
-  overflow: hidden;
-}
-.bar-progress::after {
-  content: "";
-  display: block;
-  height: 100%;
-  width: var(--progress, 0%);
-  background: var(--accent);
-  opacity: 0.55;
-  transition: width 1s linear, background-color var(--dur-medium) var(--ease-standard);
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  background-size: 120px 120px;
 }
 
 .bar-content {
   display: flex;
   align-items: center;
-  gap: 8px;
-  white-space: nowrap;
-}
-
-.bar-icon {
-  font-size: 14px;
-  line-height: 1;
-  filter: grayscale(0.15);
-  transition: transform var(--dur-medium) var(--ease-standard);
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  animation: content-in 320ms var(--ease-standard);
 }
 
 .bar-text {
-  display: flex;
-  align-items: baseline;
-  gap: 7px;
-  font-size: 13px;
-  letter-spacing: 0.1px;
-}
-
-.bar-prayer {
-  color: var(--text-primary);
+  font-size: 15px;
   font-weight: 600;
-}
-
-.bar-sep {
-  color: var(--text-tertiary);
-}
-
-.bar-countdown {
-  color: var(--text-secondary);
+  color: var(--text-primary);
   font-variant-numeric: tabular-nums;
-  font-weight: 500;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
 }
 
-.bar-controls {
-  display: flex;
-  gap: 6px;
-  margin-left: 4px;
-}
-
-.bar-btn {
-  font-size: 11px;
-  padding: 3px 10px;
-  border-radius: var(--radius-pill);
-  border: 1px solid var(--glass-border-strong);
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--text-primary);
-  cursor: pointer;
-  transition: background var(--dur-fast) var(--ease-standard);
-}
-.bar-btn:hover { background: rgba(255, 255, 255, 0.14); }
-
-/* ---------- State: close (< 60s to prayer) ---------- */
-.bar[data-state="close"] .bar-countdown {
-  color: var(--text-primary);
-}
-.bar[data-state="close"] .bar-icon {
-  animation: pulse-soft 1.6s ease-in-out infinite;
-}
-
-/* ---------- State: adhan ---------- */
-.bar[data-state="adhan"] {
-  padding: 12px 22px;
-  min-width: 260px;
-  border-color: rgba(255, 140, 130, 0.35);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 120, 110, 0.12);
-  animation: bounce-in var(--dur-slow) var(--ease-standard);
-}
-.bar[data-state="adhan"] .bar-icon { transform: scale(1.15); }
-.bar[data-state="adhan"] .bar-prayer,
-.bar[data-state="adhan"] .bar-countdown { color: var(--accent-warning); }
-.bar[data-state="adhan"] .bar-progress::after { background: var(--accent-warning); }
-
-/* ---------- State: iqama ---------- */
-.bar[data-state="iqama"] .bar-icon { filter: none; }
-.bar[data-state="iqama"] .bar-progress::after { background: var(--accent-warning); opacity: 0.4; }
-
-/* ---------- State: iqama warning (last 5 min) ---------- */
-.bar[data-state="iqamaWarning"] {
-  border-color: rgba(255, 120, 110, 0.3);
-}
-.bar[data-state="iqamaWarning"] .bar-prayer,
-.bar[data-state="iqamaWarning"] .bar-countdown {
-  color: var(--accent-warning);
-}
-.bar[data-state="iqamaWarning"] .bar-icon {
-  animation: pulse-warning 2.2s ease-in-out infinite;
-}
-.bar[data-state="iqamaWarning"] .bar-progress::after { background: var(--accent-warning); }
-
-/* ---------- State: paused ---------- */
-.bar[data-state="paused"] .bar-icon,
-.bar[data-state="paused"] .bar-prayer,
-.bar[data-state="paused"] .bar-countdown {
-  color: var(--accent-paused);
-}
-.bar[data-state="paused"] .bar-progress::after { background: var(--accent-paused); opacity: 0.3; }
+/* ---------- Tones (border accents only — the real color/blur is native
+   acrylic from Rust; CSS just adds a matching subtle border glow) ---------- */
+.bar[data-tone="adhan"] { border-color: var(--border-adhan); }
+.bar[data-tone="warning"] { border-color: var(--border-warning); }
 
 /* ---------- Announcement overlay: Adhan / custom alarm ---------- */
-/* Stays expanded until the user clicks the acknowledge button — this
-   doesn't auto-collapse like the old timer-based adhan state, per the
-   "big banner + OK button, dismissed manually" behavior requested. */
-.bar[data-announce="true"] {
-  padding: 28px 44px;
-  min-width: 480px;
-  max-width: 560px;
-  border-color: rgba(255, 140, 130, 0.45);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 120, 110, 0.18);
-  animation: announce-in 420ms var(--ease-standard);
-  cursor: default;
-}
-.bar[data-announce="true"] .bar-content { display: none; }
-.bar[data-announce="true"] .bar-progress { display: none; }
-
+/* Horizontal layout — text on one side, a distinctly-shaped acknowledge
+   button on the other — matching the reference sketch rather than a
+   vertically-stacked banner. Stays until the user clicks the button. */
 .bar-announce {
   display: none;
-  flex-direction: column;
   align-items: center;
-  gap: 14px;
-  text-align: center;
+  justify-content: space-between;
+  gap: 20px;
   width: 100%;
+  height: 100%;
+  padding: 0 16px 0 28px;
+  animation: content-in 320ms var(--ease-standard);
 }
+.bar[data-announce="true"] .bar-content { display: none; }
 .bar[data-announce="true"] .bar-announce { display: flex; }
+.bar[data-announce="true"] .bar-noise { opacity: 0.04; }
 
-.announce-icon {
-  font-size: 34px;
-  animation: pulse-warning 1.8s ease-in-out infinite;
-}
 .announce-text {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--accent-warning);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
 }
+
 .announce-btn {
+  flex-shrink: 0;
   font-size: 14px;
   font-weight: 700;
-  padding: 10px 34px;
-  border-radius: var(--radius-pill);
-  border: none;
-  background: var(--accent-warning);
-  color: #1a0a08;
+  padding: 14px 22px;
+  border-radius: 18px;
+  border: 1.5px solid var(--accent-adhan);
+  background: rgba(0, 0, 0, 0.45);
+  color: var(--text-primary);
   cursor: pointer;
-  transition: transform 120ms var(--ease-standard), opacity 120ms var(--ease-standard);
+  box-shadow: 0 0 14px rgba(111, 227, 165, 0.35);
+  transition: transform 120ms var(--ease-standard), box-shadow 120ms var(--ease-standard);
 }
-.announce-btn:hover { opacity: 0.9; }
-.announce-btn:active { transform: scale(0.96); }
+.announce-btn:hover {
+  box-shadow: 0 0 20px rgba(111, 227, 165, 0.5);
+}
+.announce-btn:active {
+  transform: scale(0.94);
+}
 
-@keyframes announce-in {
-  0%   { transform: scale(0.85); opacity: 0.4; }
-  60%  { transform: scale(1.04); }
-  100% { transform: scale(1); opacity: 1; }
+/* ---------- Content transition ---------- */
+@keyframes content-in {
+  from { opacity: 0; transform: translateY(-2px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ---------- Temporary grow: fired once when the 5-min-before-Iqama
-   warning begins, then auto-clears after a few seconds (no button —
-   it's a heads-up, not something requiring acknowledgment). ---------- */
-.bar[data-grow="true"] {
-  padding: 16px 30px;
-  min-width: 320px;
-  animation: grow-pulse 700ms var(--ease-standard);
+/* ---------- Spring expand/collapse — the window itself resizes instantly
+   (Win32 has no native animated resize), so the "spring" feel comes from
+   animating the content's own scale within the already-resized window.
+   This is a standard technique for Dynamic-Island-style Tauri/Electron
+   apps that can't rely on native window-resize animation. ---------- */
+.bar[data-anim="expand"] { animation: spring-expand 480ms var(--ease-spring); }
+.bar[data-anim="collapse"] { animation: spring-collapse 420ms var(--ease-spring); }
+
+@keyframes spring-expand {
+  0%   { transform: scale(0.55); opacity: 0.4; }
+  55%  { transform: scale(1.05); opacity: 1; }
+  78%  { transform: scale(0.98); }
+  100% { transform: scale(1); }
 }
+@keyframes spring-collapse {
+  0%   { transform: scale(1.04); }
+  45%  { transform: scale(0.93); }
+  100% { transform: scale(1); }
+}
+
+/* ---------- Brief "grow" pulse for the 5-min-before-Iqama warning — no
+   window resize, just a quick scale bounce within the compact window's
+   built-in margin (the window is sized with slack beyond the pill's
+   natural content size specifically so this never clips). ---------- */
+.bar[data-grow="true"] { animation: grow-pulse 700ms var(--ease-spring); }
 @keyframes grow-pulse {
   0%   { transform: scale(1); }
-  40%  { transform: scale(1.1); }
+  45%  { transform: scale(1.08); }
   100% { transform: scale(1); }
-}
-
-@keyframes bounce-in {
-  0%   { transform: scale(0.94); }
-  55%  { transform: scale(1.03); }
-  100% { transform: scale(1); }
-}
-
-@keyframes pulse-soft {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.55; }
-}
-
-@keyframes pulse-warning {
-  0%, 100% { transform: scale(1);    opacity: 1;   }
-  50%      { transform: scale(1.08); opacity: 0.75;}
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bar, .bar-icon, .bar-progress::after { animation: none !important; transition: none !important; }
+  .bar, .bar-content, .bar-announce { animation: none !important; }
 }
-
-/* ---------- Compact mode (Appearance setting) ---------- */
-.bar[data-compact="true"] {
-  padding: 6px 14px;
-  min-width: 170px;
-}
-.bar[data-compact="true"] .bar-text { font-size: 11px; }
-.bar[data-compact="true"] .bar-icon { font-size: 12px; }

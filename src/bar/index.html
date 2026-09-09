@@ -4,28 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>بار الصلاة</title>
-  <link rel="stylesheet" href="../styles/glass.css" />
   <link rel="stylesheet" href="./bar.css" />
 </head>
 <body>
   <!-- data-tauri-drag-region lets the OS handle window dragging natively -->
-  <div id="bar" class="bar" data-tauri-drag-region>
-    <div class="bar-progress" id="barProgress" aria-hidden="true"></div>
+  <div id="bar" class="bar" data-tauri-drag-region data-tone="normal">
+    <div class="bar-noise" aria-hidden="true"></div>
 
-    <!-- المحتوى العادي (العد التنازلي المدمج) -->
+    <!-- المحتوى العادي: نص واحد يترك للمتصفح ترتيب الأرقام/العربية تلقائيًا -->
     <div class="bar-content" id="barContent">
-      <span class="bar-icon" id="barIcon">🕌</span>
-      <div class="bar-text">
-        <span class="bar-prayer" id="barPrayerName">المغرب</span>
-        <span class="bar-sep" id="barSep">·</span>
-        <span class="bar-countdown" id="barCountdown">01:42:36</span>
-      </div>
+      <span class="bar-text" id="barText">12:12:12&nbsp;&nbsp;المغرب</span>
     </div>
 
     <!-- إعلان كبير: أذان الصلاة أو منبه مخصص -->
     <div class="bar-announce" id="barAnnounce" hidden>
-      <span class="announce-icon" id="announceIcon">🕌</span>
-      <span class="announce-text" id="announceText">أذان المغرب</span>
+      <span class="announce-text" id="announceText">حان وقت صلاة المغرب</span>
       <button class="announce-btn" id="btnAcknowledge">حسنًا</button>
     </div>
   </div>

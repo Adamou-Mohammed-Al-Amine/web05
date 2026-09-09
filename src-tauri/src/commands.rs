@@ -15,32 +15,42 @@ pub fn show_notification(app: AppHandle, title: String, body: String) -> Result<
 }
 
 #[tauri::command]
-pub fn toggle_panel_window(app: AppHandle) -> Result<(), String> {
-    if app.get_webview_window("panel").is_none() {
-        windows::create_panel_window(&app).map_err(|e| e.to_string())?;
+pub fn toggle_main_window(app: AppHandle) -> Result<(), String> {
+    if app.get_webview_window("main").is_none() {
+        windows::create_main_window(&app).map_err(|e| e.to_string())?;
     }
-    if let Some(panel) = app.get_webview_window("panel") {
-        let visible = panel.is_visible().unwrap_or(false);
+    if let Some(main) = app.get_webview_window("main") {
+        let visible = main.is_visible().unwrap_or(false);
         if visible {
-            panel.hide().map_err(|e| e.to_string())?;
+            main.hide().map_err(|e| e.to_string())?;
         } else {
-            panel.show().map_err(|e| e.to_string())?;
-            panel.set_focus().map_err(|e| e.to_string())?;
+            main.show().map_err(|e| e.to_string())?;
+            main.set_focus().map_err(|e| e.to_string())?;
         }
     }
     Ok(())
 }
 
 #[tauri::command]
-pub fn open_settings_window(app: AppHandle) -> Result<(), String> {
-    if app.get_webview_window("settings").is_none() {
-        windows::create_settings_window(&app).map_err(|e| e.to_string())?;
+pub fn open_main_window(app: AppHandle, tab: Option<String>) -> Result<(), String> {
+    if app.get_webview_window("main").is_none() {
+        windows::create_main_window(&app).map_err(|e| e.to_string())?;
     }
-    if let Some(win) = app.get_webview_window("settings") {
-        win.show().map_err(|e| e.to_string())?;
-        win.set_focus().map_err(|e| e.to_string())?;
+    if let Some(main) = app.get_webview_window("main") {
+        main.show().map_err(|e| e.to_string())?;
+        main.set_focus().map_err(|e| e.to_string())?;
+        if let Some(tab) = tab {
+            let _ = app.emit_to("main", "switch-tab", tab);
+        }
     }
     Ok(())
+}
+
+/// Resizes/repositions/re-tints the bar for a visual state change. Called
+/// from the bar's own frontend whenever it enters normal/warning/adhan tone.
+#[tauri::command]
+pub fn set_bar_visual(app: AppHandle, tone: String) -> Result<(), String> {
+    windows::apply_bar_visual(&app, &tone).map_err(|e| e.to_string())
 }
 
 /// Sets Always on Top independently of the "Show Prayer Bar" and "Start with

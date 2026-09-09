@@ -1,7 +1,8 @@
 :root {
-  --bg: #12161a;
-  --bg-elevated: #1b2027;
+  --bg: #14181d;
+  --bg-elevated: #1c2128;
   --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.16);
   --text-primary: rgba(255, 255, 255, 0.92);
   --text-secondary: rgba(255, 255, 255, 0.6);
   --text-tertiary: rgba(255, 255, 255, 0.38);
@@ -25,48 +26,60 @@ html, body {
 .app {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 18px;
-  min-height: 100vh;
+  height: 100vh;
 }
 
+/* ---------- Header ---------- */
 .app-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
 }
+.app-title { display: flex; align-items: center; gap: 10px; }
+.app-logo { width: 30px; height: 30px; filter: drop-shadow(0 0 4px rgba(0,0,0,0.4)); }
+.app-title h1 { margin: 0; font-size: 15px; font-weight: 700; }
+.app-date { margin: 2px 0 0; font-size: 11px; color: var(--text-tertiary); }
+.app-clock { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
 
-.app-title {
+/* ---------- One unified tab bar for the whole app ---------- */
+.main-tabs {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  gap: 2px;
+  padding: 8px 16px 0;
+  overflow-x: auto;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
 }
-
-.app-logo {
-  width: 30px;
-  height: 30px;
-  filter: drop-shadow(0 0 4px rgba(0,0,0,0.4));
-}
-
-.app-title h1 {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.app-date {
-  margin: 2px 0 0;
-  font-size: 11px;
+.main-tab {
+  border: none;
+  background: transparent;
   color: var(--text-tertiary);
-}
-
-.app-clock {
-  font-size: 18px;
+  font-size: 12.5px;
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-secondary);
+  padding: 9px 13px;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2px solid transparent;
+  font-family: inherit;
+  transition: color 150ms var(--ease);
+}
+.main-tab[data-active="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+.main-tab:hover { color: var(--text-primary); }
+
+.app-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px;
 }
 
+.tab-panel { display: none; flex-direction: column; gap: 16px; }
+.tab-panel[data-active="true"] { display: flex; }
+
+/* ---------- Home tab ---------- */
 .next-prayer-card {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -75,46 +88,13 @@ html, body {
   text-align: center;
   animation: fade-in 300ms var(--ease);
 }
+.next-prayer-label { font-size: 12px; color: var(--text-tertiary); margin-bottom: 6px; }
+.next-prayer-name { font-size: 26px; font-weight: 800; color: var(--accent); margin-bottom: 4px; }
+.next-prayer-countdown { font-size: 34px; font-weight: 700; font-variant-numeric: tabular-nums; margin-bottom: 12px; }
+.next-prayer-progress { height: 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.next-prayer-progress-fill { height: 100%; width: var(--progress, 0%); background: var(--accent); transition: width 1s linear; }
 
-.next-prayer-label {
-  font-size: 12px;
-  color: var(--text-tertiary);
-  margin-bottom: 6px;
-}
-
-.next-prayer-name {
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--accent);
-  margin-bottom: 4px;
-}
-
-.next-prayer-countdown {
-  font-size: 34px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  margin-bottom: 12px;
-}
-
-.next-prayer-progress {
-  height: 6px;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.08);
-  overflow: hidden;
-}
-.next-prayer-progress-fill {
-  height: 100%;
-  width: var(--progress, 0%);
-  background: var(--accent);
-  transition: width 1s linear;
-}
-
-.prayers-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
+.prayers-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
 .prayer-card {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -123,186 +103,99 @@ html, body {
   text-align: center;
   transition: border-color 200ms var(--ease), background 200ms var(--ease);
 }
-
-.prayer-card[data-active="true"] {
-  border-color: var(--accent);
-  background: var(--accent-dim);
-}
-
-.prayer-card-name {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-bottom: 4px;
-}
-.prayer-card[data-active="true"] .prayer-card-name {
-  color: var(--accent);
-  font-weight: 700;
-}
-
-.prayer-card-time {
-  font-size: 15px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  margin-bottom: 2px;
-}
-
-.prayer-card-status {
-  font-size: 10px;
-  color: var(--text-tertiary);
-}
+.prayer-card[data-active="true"] { border-color: var(--accent); background: var(--accent-dim); }
+.prayer-card-name { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; }
+.prayer-card[data-active="true"] .prayer-card-name { color: var(--accent); font-weight: 700; }
+.prayer-card-time { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; margin-bottom: 2px; }
+.prayer-card-status { font-size: 10px; color: var(--text-tertiary); }
 .prayer-card[data-passed="true"] .prayer-card-time,
-.prayer-card[data-passed="true"] .prayer-card-name {
-  color: var(--text-tertiary);
-}
+.prayer-card[data-passed="true"] .prayer-card-name { color: var(--text-tertiary); }
 
-.btn-settings {
-  margin-top: auto;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  border-radius: 10px;
-  padding: 10px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 150ms var(--ease);
-}
-.btn-settings:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
+@keyframes fade-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ---------- Tabs ---------- */
-.main-tabs {
-  display: flex;
-  gap: 4px;
-  padding: 3px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-}
-.main-tab {
-  flex: 1;
-  border: none;
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 600;
-  padding: 8px 0;
-  border-radius: 8px;
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 150ms var(--ease), color 150ms var(--ease);
-}
-.main-tab[data-active="true"] {
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-}
-
-.tab-panel { display: none; flex-direction: column; gap: 16px; flex: 1; }
-.tab-panel[data-active="true"] { display: flex; }
-
-/* ---------- Alarms ---------- */
-.alarms-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  overflow-y: auto;
-}
-
+/* ---------- Alarms tab ---------- */
+.alarms-list { display: flex; flex-direction: column; gap: 8px; }
 .alarm-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 12px 14px;
-  gap: 10px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px;
+  padding: 12px 14px; gap: 10px;
 }
-
 .alarm-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.alarm-name {
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.alarm-time {
-  font-size: 20px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  color: var(--accent);
-}
-
+.alarm-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.alarm-time { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--accent); }
 .alarm-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-
-.alarm-toggle {
-  width: 36px; height: 20px;
-  appearance: none;
-  background: rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
-  position: relative;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-.alarm-toggle::before {
-  content: "";
-  position: absolute;
-  top: 2px; right: 2px;
-  width: 16px; height: 16px;
-  border-radius: 50%;
-  background: white;
-  transition: transform 150ms var(--ease);
-}
-.alarm-toggle:checked { background: var(--accent); }
-.alarm-toggle:checked::before { transform: translateX(-16px); }
-
-.alarm-delete {
-  background: transparent;
-  border: none;
-  color: var(--text-tertiary);
-  font-size: 16px;
-  cursor: pointer;
-  padding: 4px 8px;
-}
+.alarm-delete { background: transparent; border: none; color: var(--text-tertiary); font-size: 16px; cursor: pointer; padding: 4px 8px; }
 .alarm-delete:hover { color: #ff8080; }
-
-.alarms-empty {
-  text-align: center;
-  color: var(--text-tertiary);
-  font-size: 13px;
-  padding: 24px 0;
-}
-
-.add-alarm-form {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: auto;
-  padding-top: 12px;
-  border-top: 1px solid var(--border);
-}
+.alarms-empty { text-align: center; color: var(--text-tertiary); font-size: 13px; padding: 24px 0; }
+.add-alarm-form { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--border); }
 .add-alarm-form input {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  color: var(--text-primary);
-  border-radius: 8px;
-  padding: 9px 12px;
-  font-size: 13px;
-  font-family: inherit;
+  background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-primary);
+  border-radius: 8px; padding: 9px 12px; font-size: 13px; font-family: inherit;
 }
 .btn-add-alarm {
-  background: var(--accent);
-  border: none;
-  color: #0c1210;
-  font-weight: 700;
-  border-radius: 8px;
-  padding: 10px;
-  font-size: 13px;
-  cursor: pointer;
-  font-family: inherit;
+  background: var(--accent); border: none; color: #0c1210; font-weight: 700;
+  border-radius: 8px; padding: 10px; font-size: 13px; cursor: pointer; font-family: inherit;
 }
+
+/* ---------- Shared form controls (used by all settings-style tabs) ---------- */
+.row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 4px; border-bottom: 1px solid var(--border); font-size: 13px; gap: 16px;
+}
+.row > span:first-child { flex-shrink: 0; }
+.row-column { display: flex; flex-direction: column; gap: 6px; padding: 10px 4px; border-bottom: 1px solid var(--border); }
+.row-label { font-size: 13px; }
+
+input[type="text"], input[type="number"], input[type="time"], select {
+  background: var(--bg-elevated); border: 1px solid var(--border-strong); color: var(--text-primary);
+  border-radius: 8px; padding: 6px 10px; font-size: 12px; min-width: 140px; font-family: inherit;
+}
+input[type="number"] { min-width: 80px; }
+select:disabled { opacity: 0.6; }
+
+input[type="checkbox"] {
+  width: 36px; height: 20px; appearance: none; background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px; position: relative; cursor: pointer; transition: background 150ms var(--ease); flex-shrink: 0;
+}
+input[type="checkbox"]::before {
+  content: ""; position: absolute; top: 2px; right: 2px; width: 16px; height: 16px;
+  border-radius: 50%; background: white; transition: transform 150ms var(--ease);
+}
+input[type="checkbox"]:checked { background: var(--accent); }
+input[type="checkbox"]:checked::before { transform: translateX(-16px); }
+
+input[type="range"] { width: 140px; }
+
+.btn {
+  background: var(--bg-elevated); border: 1px solid var(--border-strong); color: var(--text-primary);
+  border-radius: 8px; padding: 7px 12px; font-size: 12px; cursor: pointer; transition: background 150ms var(--ease); font-family: inherit;
+}
+.btn:hover { background: rgba(255, 255, 255, 0.1); }
+.btn-primary { background: var(--accent); border-color: transparent; color: #0c1210; font-weight: 700; }
+
+.pause-row { display: flex; flex-direction: column; gap: 8px; padding: 12px 4px; }
+.pause-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.search-row { display: flex; gap: 8px; }
+
+.hint { margin: 0; font-size: 11px; color: var(--text-tertiary); line-height: 1.6; }
+
+.advanced { margin-top: 8px; padding-top: 8px; }
+.advanced summary { cursor: pointer; font-size: 12px; color: var(--text-secondary); padding: 6px 4px; }
+
+.section-divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+/* ---------- Welcome banner ---------- */
+.welcome-banner {
+  position: fixed; inset: 0; background: rgba(10, 12, 15, 0.92);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; text-align: center; padding: 30px; z-index: 10;
+}
+.welcome-logo { width: 48px; height: 48px; }
+.welcome-banner h2 { margin: 4px 0; font-size: 17px; }
+.welcome-banner p { margin: 0 0 8px; font-size: 13px; color: var(--text-secondary); max-width: 320px; line-height: 1.6; }
+
+/* ---------- Footer ---------- */
+.app-footer { padding: 6px 20px; border-top: 1px solid var(--border); flex-shrink: 0; display: flex; justify-content: flex-start; }
+.save-indicator { font-size: 11px; color: var(--accent); opacity: 0; transition: opacity 150ms var(--ease); }
+.save-indicator.visible { opacity: 1; }

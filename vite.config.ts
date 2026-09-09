@@ -13,7 +13,6 @@ export default defineConfig({
       input: {
         bar: resolve(__dirname, "src/bar/index.html"),
         panel: resolve(__dirname, "src/panel/panel.html"),
-        settings: resolve(__dirname, "src/settings/settings.html"),
       },
     },
   },

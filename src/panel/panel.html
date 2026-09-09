@@ -8,7 +8,7 @@
 </head>
 <body>
   <div class="app">
-    <header class="app-header">
+    <header class="app-header" data-tauri-drag-region>
       <div class="app-title">
         <img src="../assets/logo.png" alt="" class="app-logo" />
         <div>
@@ -19,35 +19,201 @@
       <div class="app-clock" id="currentClock">--:--:--</div>
     </header>
 
-    <nav class="main-tabs">
+    <nav class="main-tabs" id="mainTabs">
       <button class="main-tab" data-tab="home" data-active="true">الرئيسية</button>
       <button class="main-tab" data-tab="alarms">المنبه</button>
+      <button class="main-tab" data-tab="general">عام</button>
+      <button class="main-tab" data-tab="location">الموقع</button>
+      <button class="main-tab" data-tab="calculation">طريقة الحساب</button>
+      <button class="main-tab" data-tab="adhan">الأذان</button>
+      <button class="main-tab" data-tab="iqama">الإقامة</button>
+      <button class="main-tab" data-tab="notifications">الإشعارات</button>
     </nav>
 
-    <!-- الرئيسية -->
-    <section class="tab-panel" data-panel="home" data-active="true">
-      <section class="next-prayer-card">
-        <div class="next-prayer-label">الصلاة القادمة</div>
-        <div class="next-prayer-name" id="nextPrayerName">—</div>
-        <div class="next-prayer-countdown" id="nextPrayerCountdown">--:--:--</div>
-        <div class="next-prayer-progress"><div class="next-prayer-progress-fill" id="progressFill"></div></div>
+    <main class="app-body">
+      <!-- الرئيسية -->
+      <section class="tab-panel" data-panel="home" data-active="true">
+        <section class="next-prayer-card">
+          <div class="next-prayer-label">الصلاة القادمة</div>
+          <div class="next-prayer-name" id="nextPrayerName">—</div>
+          <div class="next-prayer-countdown" id="nextPrayerCountdown">--:--:--</div>
+          <div class="next-prayer-progress"><div class="next-prayer-progress-fill" id="progressFill"></div></div>
+        </section>
+        <div class="prayers-grid" id="prayersGrid"></div>
       </section>
 
-      <div class="prayers-grid" id="prayersGrid"></div>
+      <!-- المنبه -->
+      <section class="tab-panel" data-panel="alarms">
+        <div class="alarms-list" id="alarmsList"></div>
+        <div class="add-alarm-form">
+          <input type="text" id="newAlarmName" placeholder="اسم المنبه (مثال: موعد الدواء)" />
+          <input type="time" id="newAlarmTime" />
+          <button class="btn-add-alarm" id="btnAddAlarm">+ إضافة منبه</button>
+        </div>
+      </section>
 
-      <button class="btn-settings" id="btnOpenSettings">⚙ الإعدادات</button>
-    </section>
+      <!-- عام -->
+      <section class="tab-panel" data-panel="general">
+        <label class="row">
+          <span>التشغيل مع ويندوز</span>
+          <input type="checkbox" id="fStartWithWindows" />
+        </label>
+        <label class="row">
+          <span>البقاء دائمًا في المقدمة (Always on Top)</span>
+          <input type="checkbox" id="fAlwaysOnTop" />
+        </label>
+        <label class="row">
+          <span>إظهار البار العائم</span>
+          <input type="checkbox" id="fShowBar" />
+        </label>
+        <label class="row">
+          <span>موضع البار</span>
+          <select id="fPosition">
+            <option value="top-center">أعلى الوسط</option>
+            <option value="top-left">أعلى اليسار</option>
+            <option value="top-right">أعلى اليمين</option>
+          </select>
+        </label>
+        <label class="row">
+          <span>الشاشة</span>
+          <select id="fMonitor"></select>
+        </label>
 
-    <!-- المنبه -->
-    <section class="tab-panel" data-panel="alarms">
-      <div class="alarms-list" id="alarmsList"></div>
+        <div class="pause-row">
+          <span class="row-label">إيقاف الإشعارات مؤقتًا</span>
+          <div class="pause-buttons">
+            <button class="btn" data-pause="30">30 دقيقة</button>
+            <button class="btn" data-pause="60">ساعة واحدة</button>
+            <button class="btn" data-pause="next">حتى الصلاة القادمة</button>
+            <button class="btn" data-pause="resume">استئناف</button>
+          </div>
+        </div>
+      </section>
 
-      <div class="add-alarm-form">
-        <input type="text" id="newAlarmName" placeholder="اسم المنبه (مثال: موعد الدواء)" />
-        <input type="time" id="newAlarmTime" />
-        <button class="btn-add-alarm" id="btnAddAlarm">+ إضافة منبه</button>
-      </div>
-    </section>
+      <!-- الموقع -->
+      <section class="tab-panel" data-panel="location">
+        <label class="row">
+          <span>الدولة</span>
+          <select disabled><option>الجزائر</option></select>
+        </label>
+        <label class="row">
+          <span>الولاية</span>
+          <select id="fWilaya"></select>
+        </label>
+        <label class="row">
+          <span>البلدية</span>
+          <select id="fCommune"></select>
+        </label>
+        <p class="hint" id="locationHint"></p>
+      </section>
+
+      <!-- طريقة الحساب -->
+      <section class="tab-panel" data-panel="calculation">
+        <label class="row">
+          <span>طريقة الحساب</span>
+          <select id="fMethod">
+            <option value="MWL">رابطة العالم الإسلامي</option>
+            <option value="EGYPT">الهيئة المصرية العامة للمساحة</option>
+            <option value="KARACHI">جامعة العلوم الإسلامية، كراتشي</option>
+            <option value="UMM_AL_QURA">أم القرى، مكة المكرمة</option>
+            <option value="DUBAI">دبي</option>
+            <option value="MOONSIGHTING">لجنة رؤية الهلال العالمية</option>
+            <option value="ISNA">الجمعية الإسلامية لأمريكا الشمالية</option>
+          </select>
+        </label>
+        <label class="row">
+          <span>المذهب (لحساب العصر)</span>
+          <select id="fMadhab">
+            <option value="SHAFI">شافعي / مالكي / حنبلي</option>
+            <option value="HANAFI">حنفي</option>
+          </select>
+        </label>
+
+        <details class="advanced">
+          <summary>متقدم: تعديل يدوي لكل صلاة (بالدقائق)</summary>
+          <label class="row"><span>الفجر</span><input type="number" id="offFajr" step="1" /></label>
+          <label class="row"><span>الشروق</span><input type="number" id="offSunrise" step="1" /></label>
+          <label class="row"><span>الظهر</span><input type="number" id="offDhuhr" step="1" /></label>
+          <label class="row"><span>العصر</span><input type="number" id="offAsr" step="1" /></label>
+          <label class="row"><span>المغرب</span><input type="number" id="offMaghrib" step="1" /></label>
+          <label class="row"><span>العشاء</span><input type="number" id="offIsha" step="1" /></label>
+        </details>
+
+        <div class="section-divider"></div>
+        <label class="row">
+          <span>استخدام أوقات صلاة يدوية (بدل الحساب الفلكي)</span>
+          <input type="checkbox" id="fManualTimesEnabled" />
+        </label>
+        <p class="hint">عند التفعيل، تُستخدم الأوقات التي تدخلها هنا كل يوم بدل الحساب التلقائي — مفيد إذا كان عندك جدول ثابت من المسجد.</p>
+        <div id="manualTimesFields" hidden>
+          <label class="row"><span>الفجر</span><input type="time" id="manFajr" /></label>
+          <label class="row"><span>الشروق</span><input type="time" id="manSunrise" /></label>
+          <label class="row"><span>الظهر</span><input type="time" id="manDhuhr" /></label>
+          <label class="row"><span>العصر</span><input type="time" id="manAsr" /></label>
+          <label class="row"><span>المغرب</span><input type="time" id="manMaghrib" /></label>
+          <label class="row"><span>العشاء</span><input type="time" id="manIsha" /></label>
+        </div>
+      </section>
+
+      <!-- الأذان -->
+      <section class="tab-panel" data-panel="adhan">
+        <label class="row">
+          <span>تفعيل الأذان</span>
+          <input type="checkbox" id="fAdhanEnabled" />
+        </label>
+        <div class="row-column">
+          <span class="row-label">ملف صوت الأذان</span>
+          <div class="search-row">
+            <button class="btn" id="btnChooseAdhan">اختر ملفًا…</button>
+            <button class="btn" id="btnTestAdhan">تجربة</button>
+          </div>
+          <p class="hint" id="adhanFileLabel">لم يتم اختيار ملف — الأذان سيكون صامتًا (الإشعار والحالة المرئية تعمل رغم ذلك).</p>
+          <p class="hint">صوت الأذان تلاوة دينية ولا يمكن تضمينه مع التطبيق — اختر ملفك الخاص (mp3/wav/ogg).</p>
+        </div>
+        <label class="row">
+          <span>مستوى الصوت</span>
+          <input type="range" id="fVolume" min="0" max="100" step="1" />
+        </label>
+      </section>
+
+      <!-- الإقامة -->
+      <section class="tab-panel" data-panel="iqama">
+        <label class="row">
+          <span>تفعيل العد التنازلي للإقامة</span>
+          <input type="checkbox" id="fIqamaEnabled" />
+        </label>
+        <label class="row"><span>الفجر (دقيقة)</span><input type="number" id="iqFajr" min="0" step="1" /></label>
+        <label class="row"><span>الظهر (دقيقة)</span><input type="number" id="iqDhuhr" min="0" step="1" /></label>
+        <label class="row"><span>العصر (دقيقة)</span><input type="number" id="iqAsr" min="0" step="1" /></label>
+        <label class="row"><span>المغرب (دقيقة)</span><input type="number" id="iqMaghrib" min="0" step="1" /></label>
+        <label class="row"><span>العشاء (دقيقة)</span><input type="number" id="iqIsha" min="0" step="1" /></label>
+        <label class="row">
+          <span>تذكير قبل 5 دقائق من الإقامة</span>
+          <input type="checkbox" id="fReminderEnabled" />
+        </label>
+        <p class="hint">التذكير يستخدم نغمة قصيرة مولّدة داخليًا، فهو يعمل مباشرة بلا أي إعداد إضافي.</p>
+      </section>
+
+      <!-- الإشعارات -->
+      <section class="tab-panel" data-panel="notifications">
+        <label class="row">
+          <span>تفعيل إشعارات ويندوز</span>
+          <input type="checkbox" id="fNotificationsEnabled" />
+        </label>
+        <p class="hint">الإيقاف المؤقت (تبويب "عام" أو شريط النظام) يوقف الإشعارات والأصوات فقط، بينما حساب أوقات الصلاة يستمر في الخلفية.</p>
+      </section>
+    </main>
+
+    <div class="welcome-banner" id="welcomeBanner" hidden>
+      <img src="../assets/logo.png" alt="" class="welcome-logo" />
+      <h2>مرحبًا بك في بار الصلاة</h2>
+      <p>اضبط ولايتك وبلديتك من تبويب "الموقع"، بعدها أغلق هذه الرسالة.</p>
+      <button class="btn btn-primary" id="btnDismissWelcome">ابدأ</button>
+    </div>
+
+    <footer class="app-footer">
+      <span class="save-indicator" id="saveIndicator"></span>
+    </footer>
   </div>
 
   <script type="module" src="./panel.ts"></script>

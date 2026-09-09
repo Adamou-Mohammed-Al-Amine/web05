@@ -6,6 +6,7 @@
 mod commands;
 mod settings;
 mod tray;
+mod vibrancy;
 mod windows;
 
 use tauri::{Emitter, Manager};
@@ -73,8 +74,8 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::show_notification,
-            commands::toggle_panel_window,
-            commands::open_settings_window,
+            commands::toggle_main_window,
+            commands::open_main_window,
             commands::set_always_on_top,
             commands::get_always_on_top,
             commands::set_bar_position,
@@ -82,11 +83,11 @@ fn main() {
             commands::set_bar_monitor,
             commands::set_bar_visible,
             commands::import_adhan_sound,
+            commands::set_bar_visual,
         ])
-        // Closing the settings/panel window should not quit the app — only
-        // the tray "Quit" item should. The bar window is never given a close
-        // button (no decorations), so this branch mainly protects the
-        // settings/panel windows.
+        // Closing the main window should not quit the app — only the tray
+        // "Quit" item should. The bar window is never given a close button
+        // (no decorations), so this branch only ever applies to "main".
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 if window.label() != "bar" {

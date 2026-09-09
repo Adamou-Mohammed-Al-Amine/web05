@@ -1,12 +1,13 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Permissions granted to every Prayer Bar window (bar, panel, settings). This app has no remote/untrusted content, so one shared capability across all windows is appropriate.",
-  "windows": ["bar", "panel", "settings"],
+  "description": "Permissions granted to every Prayer Bar window (bar, main). This app has no remote/untrusted content, so one shared capability across all windows is appropriate.",
+  "windows": ["bar", "main"],
   "permissions": [
     "core:default",
     "core:window:allow-set-always-on-top",
     "core:window:allow-set-position",
+    "core:window:allow-set-size",
     "core:window:allow-start-dragging",
     "store:default",
     "notification:default",
