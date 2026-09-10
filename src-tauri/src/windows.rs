@@ -7,8 +7,8 @@ use crate::{settings, vibrancy};
 // blur/tint covers the window's actual rectangular bounds. A brief 5-min-
 // warning "grow pulse" stays CSS-only (a scale transform within the compact
 // window) since it's a sub-second cosmetic pulse, not a real size change.
-const BAR_COMPACT_WIDTH: f64 = 300.0;
-const BAR_COMPACT_HEIGHT: f64 = 64.0;
+const BAR_COMPACT_WIDTH: f64 = 250.0;
+const BAR_COMPACT_HEIGHT: f64 = 48.0;
 const BAR_EXPANDED_WIDTH: f64 = 580.0;
 const BAR_EXPANDED_HEIGHT: f64 = 120.0;
 const TOP_MARGIN: f64 = 10.0; // keeps the bar from touching the screen edge
