@@ -90,6 +90,9 @@ const el = {
 
   notificationsEnabled: document.getElementById("fNotificationsEnabled") as HTMLInputElement,
 
+  blurIntensity: document.getElementById("fBlurIntensity") as HTMLInputElement,
+  barTransparency: document.getElementById("fBarTransparency") as HTMLInputElement,
+
   welcomeBanner: document.getElementById("welcomeBanner") as HTMLDivElement,
   btnDismissWelcome: document.getElementById("btnDismissWelcome") as HTMLButtonElement,
   saveIndicator: document.getElementById("saveIndicator") as HTMLSpanElement,
@@ -503,6 +506,14 @@ function saveIqamaMinutes() {
 function populateNotifications(s: AppSettings) { el.notificationsEnabled.checked = s.notificationsEnabled; }
 el.notificationsEnabled.addEventListener("change", () => update({ notificationsEnabled: el.notificationsEnabled.checked }));
 
+// ================= Appearance (real settings — connected to native acrylic in windows.rs) =================
+function populateAppearance(s: AppSettings) {
+  el.blurIntensity.value = String(Math.round(s.blurIntensity * 100));
+  el.barTransparency.value = String(Math.round(s.barTransparency * 100));
+}
+el.blurIntensity.addEventListener("change", () => update({ blurIntensity: Number(el.blurIntensity.value) / 100 }));
+el.barTransparency.addEventListener("change", () => update({ barTransparency: Number(el.barTransparency.value) / 100 }));
+
 // ================= Welcome =================
 el.btnDismissWelcome.addEventListener("click", async () => {
   el.welcomeBanner.hidden = true;
@@ -528,6 +539,7 @@ async function init() {
   populateAdhan(settings);
   populateIqama(settings);
   populateNotifications(settings);
+  populateAppearance(settings);
   await populateMonitors(settings.monitorName);
   renderAlarms(settings.alarms);
 

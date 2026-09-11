@@ -5,7 +5,7 @@
   --text-secondary: rgba(255, 255, 255, 0.65);
   --border-normal: rgba(255, 255, 255, 0.14);
   --border-adhan: rgba(140, 255, 190, 0.35);
-  --border-warning: rgba(255, 140, 130, 0.35);
+  --border-warning: rgba(255, 140, 130, 0.4);
   --accent-adhan: #6fe3a5;
   --accent-warning: #ff8a80;
 }
@@ -34,19 +34,24 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 24px;
+  /* Compact window is 200x39 -> fully-rounded pill = height / 2. */
+  border-radius: 19.5px;
   /* A faint white wash on top of the native acrylic tint — gives the glass
      a subtle "frosted highlight" without fighting the acrylic color, which
      already carries the real charcoal/green/red tone from Rust. */
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid var(--border-normal);
-  box-shadow:
-    0 12px 34px rgba(0, 0, 0, 0.38),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  /* Kept subtle — the window now also has a native OS shadow enabled (see
+     windows.rs) so the corners can be properly rounded on Windows 11;
+     stacking a heavy CSS shadow on top of that would look doubled-up. */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   cursor: pointer;
   overflow: hidden;
-  transition: border-color 260ms var(--ease-standard);
+  transition: border-color 260ms var(--ease-standard), box-shadow 260ms var(--ease-standard);
 }
+
+/* Expanded window is 350x100 -> fully-rounded pill = height / 2. */
+.bar[data-announce="true"] { border-radius: 50px; }
 
 /* ---------- Very subtle grain/noise texture (foreground effect — works
    independently of whether native/CSS blur is active) ---------- */
@@ -66,35 +71,41 @@ html, body {
   justify-content: center;
   width: 100%;
   height: 100%;
+  padding: 0 10px;
   animation: content-in 320ms var(--ease-standard);
 }
 
 .bar-text {
-  font-size: 13.5px;
+  /* Compact window is only 200px wide — sized to comfortably fit the
+     longest realistic compact-state string ("08:32:15  إقامة العشاء")
+     without clipping, verified by character-width estimate (not runtime-
+     rendered, since this sandbox has no way to actually measure it in a
+     real WebView2 — see checklist). */
+  font-size: 11.5px;
   font-weight: 600;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.1px;
 }
 
-/* ---------- Tones (border accents only — the real color/blur is native
-   acrylic from Rust; CSS just adds a matching subtle border glow) ---------- */
+/* ---------- Tones (border + glow accents — the real color/blur is native
+   acrylic from Rust; CSS just adds a matching subtle border treatment) ---------- */
 .bar[data-tone="adhan"] { border-color: var(--border-adhan); }
 .bar[data-tone="warning"] { border-color: var(--border-warning); }
 
 /* ---------- Announcement overlay: Adhan / custom alarm ---------- */
 /* Horizontal layout — text on one side, a distinctly-shaped acknowledge
-   button on the other — matching the reference sketch rather than a
-   vertically-stacked banner. Stays until the user clicks the button. */
+   button on the other — matching the reference sketch. Sized for the
+   350x100 expanded window. Stays until the user clicks the button. */
 .bar-announce {
   display: none;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 10px;
   width: 100%;
   height: 100%;
-  padding: 0 16px 0 28px;
+  padding: 0 10px 0 16px;
   animation: content-in 320ms var(--ease-standard);
 }
 .bar[data-announce="true"] .bar-content { display: none; }
@@ -102,27 +113,29 @@ html, body {
 .bar[data-announce="true"] .bar-noise { opacity: 0.04; }
 
 .announce-text {
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text-primary);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .announce-btn {
   flex-shrink: 0;
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 700;
-  padding: 14px 22px;
-  border-radius: 18px;
+  padding: 10px 16px;
+  border-radius: 14px;
   border: 1.5px solid var(--accent-adhan);
   background: rgba(0, 0, 0, 0.45);
   color: var(--text-primary);
   cursor: pointer;
-  box-shadow: 0 0 14px rgba(111, 227, 165, 0.35);
+  box-shadow: 0 0 12px rgba(111, 227, 165, 0.35);
   transition: transform 120ms var(--ease-standard), box-shadow 120ms var(--ease-standard);
 }
 .announce-btn:hover {
-  box-shadow: 0 0 20px rgba(111, 227, 165, 0.5);
+  box-shadow: 0 0 18px rgba(111, 227, 165, 0.5);
 }
 .announce-btn:active {
   transform: scale(0.94);
@@ -138,31 +151,36 @@ html, body {
    (Win32 has no native animated resize), so the "spring" feel comes from
    animating the content's own scale within the already-resized window.
    This is a standard technique for Dynamic-Island-style Tauri/Electron
-   apps that can't rely on native window-resize animation. ---------- */
+   apps that can't rely on native window-resize animation. Kept to a modest
+   overshoot (not the full 0.55 used at larger sizes previously) since a
+   200x39 -> 350x100 jump is proportionally more dramatic already. ---------- */
 .bar[data-anim="expand"] { animation: spring-expand 480ms var(--ease-spring); }
 .bar[data-anim="collapse"] { animation: spring-collapse 420ms var(--ease-spring); }
 
 @keyframes spring-expand {
-  0%   { transform: scale(0.55); opacity: 0.4; }
-  55%  { transform: scale(1.05); opacity: 1; }
-  78%  { transform: scale(0.98); }
+  0%   { transform: scale(0.7); opacity: 0.4; }
+  55%  { transform: scale(1.04); opacity: 1; }
+  78%  { transform: scale(0.99); }
   100% { transform: scale(1); }
 }
 @keyframes spring-collapse {
-  0%   { transform: scale(1.04); }
-  45%  { transform: scale(0.93); }
+  0%   { transform: scale(1.03); }
+  45%  { transform: scale(0.95); }
   100% { transform: scale(1); }
 }
 
-/* ---------- Brief "grow" pulse for the 5-min-before-Iqama warning — no
-   window resize, just a quick scale bounce within the compact window's
-   built-in margin (the window is sized with slack beyond the pill's
-   natural content size specifically so this never clips). ---------- */
-.bar[data-grow="true"] { animation: grow-pulse 700ms var(--ease-spring); }
-@keyframes grow-pulse {
-  0%   { transform: scale(1); }
-  45%  { transform: scale(1.08); }
-  100% { transform: scale(1); }
+/* ---------- 5-min-before-Iqama warning pulse — a glow/border flash
+   instead of a scale bounce. The compact window is now only 200x39 with
+   very little margin around the text (unlike the larger, roomier compact
+   size from the previous pass), so a scale-up transform risked visibly
+   clipping against the window edges. A glow pulse gives the same "pay
+   attention" cue with zero clipping risk regardless of how tight the
+   window bounds are. ---------- */
+.bar[data-grow="true"] { animation: warn-glow-pulse 700ms var(--ease-standard); }
+@keyframes warn-glow-pulse {
+  0%   { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); }
+  40%  { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 0 16px 2px rgba(255, 138, 128, 0.55); }
+  100% { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); }
 }
 
 @media (prefers-reduced-motion: reduce) {

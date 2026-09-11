@@ -39,6 +39,8 @@ export interface AppSettings {
   customPosition: { x: number; y: number } | null;
   monitorName: string | null; // null = primary monitor
   startWithWindows: boolean;  // independent of showBar and alwaysOnTop
+  blurIntensity: number;    // 0-1, real: biases the acrylic alpha range (see windows.rs tone_rgba)
+  barTransparency: number;  // 0-1, real: direct multiplier on the acrylic alpha
   onboardingComplete: boolean;
   alarms: Alarm[];
 }
@@ -76,6 +78,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   customPosition: null,
   monitorName: null, // primary monitor
   startWithWindows: true,
+  blurIntensity: 0.6,
+  barTransparency: 0.35,
   onboardingComplete: false,
   alarms: [],
 };

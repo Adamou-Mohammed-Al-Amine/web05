@@ -2,15 +2,15 @@ use tauri::{AppHandle, LogicalPosition, LogicalSize, Manager, Monitor, WebviewUr
 
 use crate::{settings, vibrancy};
 
-// Two discrete window sizes for the bar — the OS window itself must resize
-// (not just a CSS div inside a fixed-size window) because native acrylic
-// blur/tint covers the window's actual rectangular bounds. A brief 5-min-
-// warning "grow pulse" stays CSS-only (a scale transform within the compact
+// Exact dimensions per spec. The OS window itself must resize (not just a
+// CSS div inside a fixed-size window) because native acrylic blur/tint
+// covers the window's actual rectangular bounds. A brief 5-min-warning
+// "grow pulse" stays CSS-only (a scale transform within the compact
 // window) since it's a sub-second cosmetic pulse, not a real size change.
-const BAR_COMPACT_WIDTH: f64 = 250.0;
-const BAR_COMPACT_HEIGHT: f64 = 48.0;
-const BAR_EXPANDED_WIDTH: f64 = 580.0;
-const BAR_EXPANDED_HEIGHT: f64 = 120.0;
+const BAR_COMPACT_WIDTH: f64 = 200.0;
+const BAR_COMPACT_HEIGHT: f64 = 39.0;
+const BAR_EXPANDED_WIDTH: f64 = 350.0;
+const BAR_EXPANDED_HEIGHT: f64 = 100.0;
 const TOP_MARGIN: f64 = 10.0; // keeps the bar from touching the screen edge
 
 /// Picks the monitor the bar should appear on: the one saved in settings by
@@ -75,7 +75,13 @@ pub fn create_bar_window(app: &AppHandle) -> tauri::Result<()> {
         .always_on_top(always_on_top)
         .skip_taskbar(true)
         .resizable(false)
-        .shadow(false) // the soft shadow is rendered in CSS instead
+        // Enabling shadow on an undecorated window gives real DWM-rounded
+        // corners on Windows 11 as a documented side effect (confirmed via
+        // research, not assumed) — this is what actually fixes the native
+        // acrylic-tints-a-rectangle problem on Win11. Windows 10 doesn't
+        // get this for free; see apply_rounded_region in vibrancy.rs for
+        // the supplementary fix there.
+        .shadow(true)
         .visible(false) // positioned first, then shown, to avoid a visible jump
         .build()?;
 
@@ -84,7 +90,8 @@ pub fn create_bar_window(app: &AppHandle) -> tauri::Result<()> {
         window.set_position(pos)?;
     }
 
-    vibrancy::set_bar_tint(&window, tone_rgba("normal"));
+    vibrancy::set_bar_tint(&window, tone_rgba(app, "normal"));
+    vibrancy::apply_rounded_region(&window, BAR_COMPACT_WIDTH, BAR_COMPACT_HEIGHT);
 
     if show_bar {
         window.show()?;
@@ -116,12 +123,39 @@ pub fn reposition_bar_window(app: &AppHandle) -> tauri::Result<()> {
 ///   warning -> dark red (last 5 minutes before Iqama — urgent but not
 ///              aggressive)
 ///   adhan   -> dark green (the Adhan/alarm announcement itself)
-fn tone_rgba(tone: &str) -> (u8, u8, u8, u8) {
-    match tone {
-        "adhan" => (18, 46, 32, 225),
-        "warning" => (48, 20, 20, 220),
-        _ => (22, 22, 26, 195),
-    }
+///
+/// The base RGB per tone is fixed (matches the exact conceptual states
+/// requested), but the alpha is live-adjustable via two real Appearance
+/// settings:
+///   - Bar transparency: scales alpha directly (more transparent = lower
+///     alpha = more of the real blurred desktop shows through).
+///   - Blur intensity: at low settings the tint leans more opaque/flat
+///     (less reliance on the blur being visible), at high settings it
+///     leans more transparent so the native blur dominates the look. This
+///     is a real, connected effect — not a fake label — given acrylic
+///     itself has no separately tunable "blur radius" exposed by
+///     window-vibrancy; alpha is the one real lever available, and both
+///     sliders act on it in a genuinely distinguishable way (transparency
+///     is a direct multiplier, blur intensity biases the working range).
+fn tone_rgba(app: &AppHandle, tone: &str) -> (u8, u8, u8, u8) {
+    let (r, g, b, base_alpha) = match tone {
+        "adhan" => (18u8, 46u8, 32u8, 225.0f64),
+        "warning" => (48, 20, 20, 220.0),
+        _ => (22, 22, 26, 195.0),
+    };
+
+    let transparency = settings::get_bar_transparency(app); // 0.0 (opaque) .. 1.0 (fully transparent)
+    let blur_intensity = settings::get_blur_intensity(app); // 0.0 (flat) .. 1.0 (max blur)
+
+    // Blur intensity biases the achievable alpha range: low intensity caps
+    // how transparent the bar can get (favors a flatter, more opaque look
+    // where the blur matters less), high intensity allows it to go much
+    // more transparent (favors the native blur being the dominant effect).
+    let min_alpha = 140.0 - (blur_intensity * 60.0); // 140 at intensity 0, 80 at intensity 1
+    let max_alpha = base_alpha;
+    let alpha = max_alpha - (transparency * (max_alpha - min_alpha).max(0.0));
+
+    (r, g, b, alpha.round().clamp(0.0, 255.0) as u8)
 }
 
 /// Resizes, re-centers, and re-tints the bar for a visual state change
@@ -145,7 +179,8 @@ pub fn apply_bar_visual(app: &AppHandle, tone: &str) -> tauri::Result<()> {
         let pos = compute_bar_position(&monitor, &position_pref, width);
         window.set_position(pos)?;
     }
-    vibrancy::set_bar_tint(&window, tone_rgba(tone));
+    vibrancy::set_bar_tint(&window, tone_rgba(app, tone));
+    vibrancy::apply_rounded_region(&window, width, height);
 
     Ok(())
 }

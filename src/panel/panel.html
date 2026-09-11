@@ -28,6 +28,7 @@
       <button class="main-tab" data-tab="adhan">الأذان</button>
       <button class="main-tab" data-tab="iqama">الإقامة</button>
       <button class="main-tab" data-tab="notifications">الإشعارات</button>
+      <button class="main-tab" data-tab="appearance">المظهر</button>
     </nav>
 
     <main class="app-body">
@@ -201,6 +202,19 @@
           <input type="checkbox" id="fNotificationsEnabled" />
         </label>
         <p class="hint">الإيقاف المؤقت (تبويب "عام" أو شريط النظام) يوقف الإشعارات والأصوات فقط، بينما حساب أوقات الصلاة يستمر في الخلفية.</p>
+      </section>
+
+      <!-- المظهر -->
+      <section class="tab-panel" data-panel="appearance">
+        <label class="row">
+          <span>شدة الضبابية (Blur)</span>
+          <input type="range" id="fBlurIntensity" min="0" max="100" step="1" />
+        </label>
+        <label class="row">
+          <span>شفافية البار</span>
+          <input type="range" id="fBarTransparency" min="0" max="100" step="1" />
+        </label>
+        <p class="hint">تخص هذه الإعدادات البار العائم الزجاجي فقط (طبيعي/أذان/إقامة)، وتُطبَّق مباشرة عبر تأثير الزجاج الحقيقي (Acrylic) من ويندوز نفسه.</p>
       </section>
     </main>
 

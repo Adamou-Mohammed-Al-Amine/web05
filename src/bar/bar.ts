@@ -250,6 +250,10 @@ listen<void>("settings-changed", async () => {
   currentSettings = await getSettings();
   engine.setIqamaConfig(iqamaFromSettings(currentSettings));
   cachedForKey = ""; // force recompute even if the date didn't change
+  // Blur intensity / bar transparency are read live on the Rust side from
+  // settings, but setTone() only calls into Rust when the tone STRING
+  // changes — a slider edit alone wouldn't otherwise trigger a repaint.
+  await safeInvoke("set_bar_visual", { tone: currentTone });
   await tick();
 }).catch(() => {
   /* not running inside Tauri (dev preview) — settings changes won't push, that's fine */

@@ -87,3 +87,24 @@ pub fn set_show_bar(app: &AppHandle, value: bool) {
     }
     write_settings_object(app, settings);
 }
+
+/// 0.0 (flat/no blur emphasis) .. 1.0 (max blur emphasis). Default: a
+/// moderate 0.6 — "visually premium and readable" per spec, not maxed out.
+pub fn get_blur_intensity(app: &AppHandle) -> f64 {
+    read_settings_object(app)
+        .get("blurIntensity")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.6)
+        .clamp(0.0, 1.0)
+}
+
+/// 0.0 (opaque) .. 1.0 (fully transparent). Default: 0.35 — readable but
+/// not opaque, per spec ("do not make the bar completely opaque by
+/// default").
+pub fn get_bar_transparency(app: &AppHandle) -> f64 {
+    read_settings_object(app)
+        .get("barTransparency")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.35)
+        .clamp(0.0, 1.0)
+}
