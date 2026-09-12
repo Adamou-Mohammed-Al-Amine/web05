@@ -60,8 +60,7 @@ pub fn set_bar_tint(window: &WebviewWindow, rgba: (u8, u8, u8, u8)) {
 pub fn apply_rounded_region(window: &WebviewWindow, logical_width: f64, logical_height: f64) {
     use raw_window_handle::{HasWindowHandle, RawWindowHandle};
     use windows_sys::Win32::Foundation::HWND;
-    use windows_sys::Win32::Graphics::Gdi::CreateRoundRectRgn;
-    use windows_sys::Win32::UI::WindowsAndMessaging::SetWindowRgn;
+    use windows_sys::Win32::Graphics::Gdi::{CreateRoundRectRgn, SetWindowRgn};
 
     let Ok(scale) = window.scale_factor() else { return };
     let width_px = (logical_width * scale).round() as i32;
@@ -72,16 +71,17 @@ pub fn apply_rounded_region(window: &WebviewWindow, logical_width: f64, logical_
 
     let Ok(handle) = window.window_handle() else { return };
     let RawWindowHandle::Win32(win32_handle) = handle.as_raw() else { return };
-    // windows-sys 0.52+ represents HWND as a transparent tuple struct
-    // wrapping isize, not a plain type alias — construct it explicitly
-    // rather than `as`-casting, which only works between primitives.
-    let hwnd: HWND = HWND(win32_handle.hwnd.get() as *mut core::ffi::c_void);
+    // Real compile error from the previous attempt confirmed: in this
+    // windows-sys version HWND is a plain pointer type alias
+    // (`*mut c_void`), NOT a newtype tuple struct — so it's a direct `as`
+    // cast, not a `HWND(...)` constructor call.
+    let hwnd: HWND = win32_handle.hwnd.get() as HWND;
 
     unsafe {
         let region = CreateRoundRectRgn(0, 0, width_px, height_px, corner_px, corner_px);
-        // HRGN is the same kind of newtype; a null region has a null inner
-        // pointer rather than being comparable via `.is_null()` directly.
-        if !region.0.is_null() {
+        // HRGN is the same kind of plain pointer alias — check nullness
+        // directly rather than through a `.0` field that doesn't exist.
+        if !region.is_null() {
             // On success, the system takes ownership of the region handle —
             // it must NOT be deleted afterward (per the Win32 docs).
             SetWindowRgn(hwnd, region, 1);

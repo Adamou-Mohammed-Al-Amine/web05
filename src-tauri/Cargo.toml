@@ -24,7 +24,7 @@ serde_json = "1"
 # the version-matching risk a full `windows` crate dependency would have
 # against Tauri's internal one — see vibrancy.rs for why that matters here.
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.59", features = ["Win32_Graphics_Gdi", "Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }
+windows-sys = { version = "0.59", features = ["Win32_Graphics_Gdi", "Win32_Foundation"] }
 
 [profile.release]
 opt-level = "z"     # optimize for binary size, fits the "lightweight" requirement
